@@ -71,9 +71,6 @@ docs/          architecture and how to write parts
 
 Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how it works, and [docs/WRITING_PARTS.md](docs/WRITING_PARTS.md) to add a part.
 
-## Do I need Docker?
-
-No. The simulator is plain TypeScript, so it runs the same on every OS. The only native piece is the compiler, and arduino-cli already ships for Windows, macOS and Linux and downloads the right toolchain for your machine. Docker is optional for contributors who want an identical build environment.
 
 ## License
 
