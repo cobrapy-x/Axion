@@ -1,0 +1,12 @@
+{
+  "type": "axion-battery",
+  "name": "Battery",
+  "category": "Power",
+  "description": "DC power source (battery pack or bench supply). Connect '-' to the circuit's GND.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "bat",
+  "props": {
+    "voltage": { "type": "number", "label": "Voltage (V)", "default": 9 }
+  }
+}

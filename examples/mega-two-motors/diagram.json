@@ -1,0 +1,210 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    {
+      "type": "wokwi-arduino-mega",
+      "id": "mega",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "axion-l298n",
+      "id": "drv1",
+      "top": -300,
+      "left": 150,
+      "attrs": {}
+    },
+    {
+      "type": "axion-encoder-motor",
+      "id": "right",
+      "top": -420,
+      "left": 330,
+      "attrs": {}
+    },
+    {
+      "type": "axion-encoder-motor",
+      "id": "left",
+      "top": -440,
+      "left": -30,
+      "attrs": {}
+    },
+    {
+      "type": "axion-battery",
+      "id": "bat1",
+      "top": -130,
+      "left": -160,
+      "attrs": {
+        "voltage": "12"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "mega:11",
+      "drv1:ENA",
+      "orange",
+      [
+        "v-99"
+      ]
+    ],
+    [
+      "mega:10",
+      "drv1:IN1",
+      "purple",
+      [
+        "v-89"
+      ]
+    ],
+    [
+      "mega:9",
+      "drv1:IN2",
+      "purple",
+      [
+        "v-79"
+      ]
+    ],
+    [
+      "mega:8",
+      "drv1:IN3",
+      "purple",
+      [
+        "v-69"
+      ]
+    ],
+    [
+      "mega:7",
+      "drv1:IN4",
+      "purple",
+      [
+        "v-59"
+      ]
+    ],
+    [
+      "mega:6",
+      "drv1:ENB",
+      "orange",
+      [
+        "v-49"
+      ]
+    ],
+    [
+      "bat1:+",
+      "drv1:12V",
+      "red",
+      [
+        "v-10"
+      ]
+    ],
+    [
+      "bat1:-",
+      "drv1:GND",
+      "black",
+      [
+        "v-4"
+      ]
+    ],
+    [
+      "mega:GND.1",
+      "drv1:GND",
+      "black",
+      [
+        "v-133"
+      ]
+    ],
+    [
+      "drv1:OUT3",
+      "right:+",
+      "red",
+      []
+    ],
+    [
+      "drv1:OUT4",
+      "right:-",
+      "black",
+      []
+    ],
+    [
+      "right:A",
+      "mega:18",
+      "yellow",
+      [
+        "v200"
+      ]
+    ],
+    [
+      "right:B",
+      "mega:19",
+      "cyan",
+      [
+        "v210"
+      ]
+    ],
+    [
+      "right:GND",
+      "mega:GND.2",
+      "black",
+      [
+        "v498"
+      ]
+    ],
+    [
+      "right:VCC",
+      "mega:5V",
+      "red",
+      [
+        "v508"
+      ]
+    ],
+    [
+      "drv1:OUT1",
+      "left:-",
+      "black",
+      []
+    ],
+    [
+      "drv1:OUT2",
+      "left:+",
+      "red",
+      []
+    ],
+    [
+      "left:A",
+      "mega:3",
+      "yellow",
+      [
+        "v290"
+      ]
+    ],
+    [
+      "left:B",
+      "mega:2",
+      "cyan",
+      [
+        "v300"
+      ]
+    ],
+    [
+      "left:GND",
+      "mega:GND.1",
+      "black",
+      [
+        "v270"
+      ]
+    ],
+    [
+      "left:VCC",
+      "mega:5V",
+      "red",
+      [
+        "v280",
+        "h-120",
+        "v236",
+        "h0"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}

@@ -1,0 +1,9 @@
+{
+  "type": "wokwi-servo",
+  "name": "Servo (SG90)",
+  "category": "Actuators",
+  "description": "Hobby servo. Pulse width on PWM sets the angle (544-2400 µs = 0-180°, like Servo.h). Moves at ~0.1 s per 60°. Needs V+ (5 V) and GND.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "servo"
+}

@@ -3,24 +3,27 @@
  * The simulation engine. It has no DOM dependencies, so it runs inside a
  * Web Worker in the app and directly inside Node for tests.
  *
- * Electrical model (deliberately simple and fast — "digital with strengths"):
+ * Electrical model (deliberately simple and fast — "voltages with drive strengths"):
  *  1. Wires, internal part connections and closed switches join pins into *nets*
  *     (union-find).
- *  2. Each pin applies a Drive. Per net: strong drives win; a strong HIGH and a
- *     strong LOW on the same net is a short circuit.
- *  3. Resistors link nets weakly: a net with no strong drive takes the value of a
+ *  2. Each pin applies a Drive: a strong voltage ('high' = 5 V, 'low' = 0 V, or any
+ *     number), a weak pull-up / pull-down, or nothing ('z'). Per net, strong beats
+ *     weak; two strong drives with different voltages are a short circuit.
+ *  3. Resistors link nets weakly: a net with no strong drive takes the voltage of a
  *     strongly driven neighbour through a resistor, which in turn beats an MCU's
  *     internal pull-up (matching how a real 10k pull-down beats a ~35k pull-up).
- *  4. Whenever a part reports a change (`invalidate`) the circuit is re-solved
- *     immediately and parts whose pin levels changed are notified. This is
- *     event-driven: nothing is computed while no pin changes.
+ *  4. Event-driven: the circuit is re-solved only when a part reports a change
+ *     (`invalidate`). Parts whose pin level/voltage changed are notified, and the
+ *     solve repeats until nothing changes, so signals ripple through behavioural
+ *     parts (e.g. MCU pin → motor driver input → motor driver output → motor).
  *
  * Multiple MCUs are advanced in small time quanta (default 50 µs of simulated
  * time) so they stay in lock-step with each other.
  */
 import type { Diagram } from './diagram';
 import { splitEndpoint } from './diagram';
-import type { Drive, Level, ModelFactory, PartContext, PartManifest, PartModel, Props } from './types';
+import { VCC, levelOf } from './types';
+import type { Level, ModelFactory, PartContext, PartManifest, PartModel, Props } from './types';
 
 export interface PartType {
   manifest: PartManifest;
@@ -44,7 +47,6 @@ interface Instance {
   id: string;
   manifest?: PartManifest;
   model: PartModel;
-  pins: Set<string>;
 }
 
 const key = (part: string, pin: string) => `${part}:${pin}`;
@@ -53,6 +55,9 @@ const PRIO_STRONG = 4;
 const PRIO_RES_STRONG = 3;
 const PRIO_PULL = 2;
 const PRIO_RES_WEAK = 1;
+/** Voltage differences below this are considered equal. */
+const EPS = 0.01;
+const MAX_ROUNDS = 50;
 
 export class Engine {
   private parts = new Map<string, Instance>();
@@ -66,8 +71,9 @@ export class Engine {
   private resEdges: Array<[number, number]> = [];
 
   // Solved state
-  private netLevel: Level[] = [];
-  private pinLevel = new Map<string, Level>();
+  private netVolts: Array<number | null> = [];
+  private pinVolts = new Map<string, number | null>();
+  private shorts = new Set<string>();
   private solving = false;
   private solveAgain = false;
 
@@ -86,7 +92,7 @@ export class Engine {
     this.timeNs = 0;
     this.events = [];
     this.warnings.clear();
-    this.pinLevel.clear();
+    this.pinVolts.clear();
 
     for (const p of diagram.parts) {
       const type = this.types.get(p.type);
@@ -97,7 +103,7 @@ export class Engine {
         const spec = type?.manifest.props?.[k];
         props[k] = spec?.type === 'number' ? Number(v) : spec?.type === 'boolean' ? v === 'true' || v === '1' : v;
       }
-      const inst: Instance = { id: p.id, manifest: type?.manifest, model: {}, pins: new Set() };
+      const inst: Instance = { id: p.id, manifest: type?.manifest, model: {} };
       this.parts.set(p.id, inst);
       const ctx = this.makeContext(inst, props, firmware[p.id]);
       inst.model = type?.model ? type.model(ctx) : {};
@@ -118,7 +124,11 @@ export class Engine {
 
   /** Advance the simulation to `targetNs`. */
   stepTo(targetNs: number, quantumNs = 50_000): void {
-    const steppers = [...this.parts.values()].filter((p) => p.model.step);
+    // Microcontrollers run first in each quantum, so other parts see their pin
+    // changes with exact timestamps before advancing their own physics.
+    const steppers = [...this.parts.values()]
+      .filter((p) => p.model.step)
+      .sort((a, b) => Number(!!b.manifest?.mcu) - Number(!!a.manifest?.mcu));
     if (steppers.length === 0) {
       this.timeNs = Math.max(this.timeNs, targetNs);
       return;
@@ -151,7 +161,12 @@ export class Engine {
 
   /** Level seen on a part's pin (used by tests and tools). */
   level(partId: string, pin: string): Level {
-    return this.pinLevel.get(key(partId, pin)) ?? null;
+    return levelOf(this.voltage(partId, pin));
+  }
+
+  /** Voltage seen on a part's pin (used by tests and tools). */
+  voltage(partId: string, pin: string): number | null {
+    return this.pinVolts.get(key(partId, pin)) ?? null;
   }
 
   // ───────────────────────────── internals ─────────────────────────────
@@ -162,7 +177,8 @@ export class Engine {
       props,
       firmware,
       now: () => this.timeNs,
-      level: (pin) => this.pinLevel.get(key(inst.id, pin)) ?? null,
+      level: (pin) => levelOf(this.pinVolts.get(key(inst.id, pin)) ?? null),
+      voltage: (pin) => this.pinVolts.get(key(inst.id, pin)) ?? null,
       invalidate: (topology = false) => {
         if (topology) this.topoDirty = true;
         this.solve();
@@ -227,10 +243,7 @@ export class Engine {
       this.pinNet.set(k, n);
       const { part, pin } = splitEndpoint(k);
       const inst = this.parts.get(part);
-      if (inst) {
-        inst.pins.add(pin);
-        this.netPins[n].push({ inst, pin });
-      }
+      if (inst) this.netPins[n].push({ inst, pin });
     }
     this.resEdges = resPairs
       .map(([a, b]) => [this.pinNet.get(a)!, this.pinNet.get(b)!] as [number, number])
@@ -238,31 +251,37 @@ export class Engine {
     this.topoDirty = false;
   }
 
-  private computeLevels(): void {
+  private computeVoltages(): void {
     const nNets = this.netPins.length;
-    const value: Level[] = new Array(nNets).fill(null);
+    const volts: Array<number | null> = new Array(nNets).fill(null);
     const prio: number[] = new Array(nNets).fill(0);
     const conflict: boolean[] = new Array(nNets).fill(false);
+    this.shorts.clear();
 
     for (let n = 0; n < nNets; n++) {
-      let sH = false, sL = false, wH = false, wL = false;
+      let strong: number | null = null;
+      let shorted = false;
+      let wH = false;
+      let wL = false;
       for (const { inst, pin } of this.netPins[n]) {
-        const d: Drive = inst.model.drive?.(pin) ?? 'z';
-        if (d === 'high') sH = true;
-        else if (d === 'low') sL = true;
-        else if (d === 'pullup') wH = true;
+        const d = inst.model.drive?.(pin) ?? 'z';
+        const v = d === 'high' ? VCC : d === 'low' ? 0 : typeof d === 'number' ? d : null;
+        if (v !== null) {
+          if (strong === null) strong = v;
+          else if (Math.abs(strong - v) > 0.05) shorted = true;
+        } else if (d === 'pullup') wH = true;
         else if (d === 'pulldown') wL = true;
       }
-      if (sH && sL) {
+      if (shorted) {
         conflict[n] = true;
         prio[n] = PRIO_STRONG;
         const names = this.netPins[n].map((p) => `${p.inst.id}:${p.pin}`).join(', ');
-        this.warnings.add(`Short circuit: HIGH and LOW driven together on net [${names}]`);
-      } else if (sH || sL) {
-        value[n] = sH ? 1 : 0;
+        this.shorts.add(`Short circuit: different voltages driven together on net [${names}]`);
+      } else if (strong !== null) {
+        volts[n] = strong;
         prio[n] = PRIO_STRONG;
       } else if (wH !== wL) {
-        value[n] = wH ? 1 : 0;
+        volts[n] = wH ? VCC : 0;
         prio[n] = PRIO_PULL;
       }
     }
@@ -276,18 +295,19 @@ export class Engine {
           const p = prio[from] === PRIO_STRONG ? PRIO_RES_STRONG : PRIO_RES_WEAK;
           if (p > prio[to]) {
             prio[to] = p;
-            value[to] = value[from];
+            volts[to] = volts[from];
             conflict[to] = false;
             changed = true;
-          } else if (p === prio[to] && value[to] !== value[from] && !conflict[to]) {
-            conflict[to] = true; // e.g. a voltage divider: undefined logic level
-            value[to] = null;
+          } else if (p === prio[to] && !conflict[to] && volts[to] !== null && Math.abs(volts[to]! - volts[from]!) > EPS) {
+            // Two sources through resistors (a voltage divider): we don't model the ratio yet.
+            conflict[to] = true;
+            volts[to] = null;
             changed = true;
           }
         }
       }
     }
-    this.netLevel = value;
+    this.netVolts = volts;
   }
 
   private solve(): void {
@@ -297,27 +317,31 @@ export class Engine {
     }
     this.solving = true;
     try {
-      let rounds = 0;
-      do {
+      for (let round = 0; ; round++) {
         this.solveAgain = false;
         if (this.topoDirty) this.rebuildTopology();
-        this.computeLevels();
+        this.computeVoltages();
         const changes: Array<{ inst: Instance; pin: string; level: Level }> = [];
         for (const [k, n] of this.pinNet) {
-          const lvl = this.netLevel[n];
-          if (this.pinLevel.get(k) !== lvl) {
-            this.pinLevel.set(k, lvl);
+          const v = this.netVolts[n];
+          const old = this.pinVolts.get(k);
+          const same = old === undefined ? false : old === null || v === null ? old === v : Math.abs(old - v) <= EPS;
+          if (!same) {
+            this.pinVolts.set(k, v);
             const { part, pin } = splitEndpoint(k);
             const inst = this.parts.get(part);
-            if (inst) changes.push({ inst, pin, level: lvl });
+            if (inst) changes.push({ inst, pin, level: levelOf(v) });
           }
         }
         for (const c of changes) c.inst.model.onPinChange?.(c.pin, c.level);
-        if (++rounds > 50) {
+        // Stable: nothing changed and no part asked for another pass.
+        if (!changes.length && !this.solveAgain && !this.topoDirty) break;
+        if (round >= MAX_ROUNDS) {
           this.warnings.add('Circuit is oscillating (did not settle after 50 iterations).');
           break;
         }
-      } while (this.solveAgain || this.topoDirty);
+      }
+      for (const s of this.shorts) this.warnings.add(s);
     } finally {
       this.solving = false;
     }

@@ -9,16 +9,28 @@
  *   - view.ts    → PartView     (drawing + animation; runs on the main thread)
  */
 
-/** Logic level of a net. `null` = floating / undefined / shorted. */
+/** Logic level of a net. `null` = floating / in-between / shorted. */
 export type Level = 0 | 1 | null;
+
+/** Supply voltage used for 'high' and 'pullup' drives. */
+export const VCC = 5;
 
 /**
  * How a part drives one of its pins.
- * - 'z'        high impedance (input, not connected internally)
- * - 'high'/'low' strong drive (push-pull output, power rail)
+ * - 'z'                 high impedance (input, not connected internally)
+ * - 'high' / 'low'      strong drive to VCC / 0 V (push-pull output)
+ * - number              strong drive to that many volts (power rails, potentiometer wiper, motor driver output)
  * - 'pullup'/'pulldown' weak drive (internal pull resistor)
  */
-export type Drive = 'z' | 'high' | 'low' | 'pullup' | 'pulldown';
+export type Drive = 'z' | 'high' | 'low' | 'pullup' | 'pulldown' | number;
+
+/** Logic thresholds used to turn a net voltage into a Level. */
+export function levelOf(volts: number | null): Level {
+  if (volts === null) return null;
+  if (volts >= 3) return 1;
+  if (volts <= 1.5) return 0;
+  return null;
+}
 
 // ─────────────────────────────── Manifest ───────────────────────────────
 
@@ -70,6 +82,8 @@ export interface PartContext {
   now(): number;
   /** Solved level of the net attached to one of this part's pins. */
   level(pin: string): Level;
+  /** Solved voltage of the net attached to a pin, or null if floating / shorted. */
+  voltage(pin: string): number | null;
   /**
    * Tell the engine this part's drives / switches / resistors changed.
    * The engine re-solves the circuit immediately.
@@ -98,7 +112,11 @@ export interface PartModel {
   switches?(): Array<[string, string]>;
   /** Pin pairs linked through a resistor. */
   resistors?(): Array<[string, string]>;
-  /** Called when the level of a net attached to `pin` changes. */
+  /**
+   * Called when the level or voltage of a net attached to `pin` changes.
+   * Drives are re-evaluated automatically afterwards, so parts whose outputs depend
+   * on their inputs (logic gates, motor drivers…) only need to read `ctx.voltage()` in `drive()`.
+   */
   onPinChange?(pin: string, level: Level): void;
   /** Data unit received on `pin` (see PartContext.sendData). */
   onData?(pin: string, channel: string, value: number): void;

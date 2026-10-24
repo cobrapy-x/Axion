@@ -2,7 +2,7 @@
 import type { ModelFactory } from '../../core/types';
 
 /**
- * An LED is lit when its anode (A) is HIGH and its cathode (C) is LOW.
+ * An LED is lit when its anode (A) is at least 1.5 V above its cathode (C).
  * Brightness = fraction of time it was lit since the last frame, so
  * analogWrite() / PWM dims it smoothly.
  */
@@ -12,7 +12,11 @@ const create: ModelFactory = (ctx) => {
   let windowStart = since;
   let onTime = 0;
 
-  const isLit = () => ctx.level('A') === 1 && ctx.level('C') === 0;
+  const isLit = () => {
+    const a = ctx.voltage('A');
+    const c = ctx.voltage('C');
+    return a !== null && c !== null && a - c >= 1.5;
+  };
 
   return {
     onPinChange() {

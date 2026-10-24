@@ -5,12 +5,24 @@
 Wire up Arduinos, LEDs, buttons and more, write your sketch, and run it on your own computer. You don't need an internet connection, don't wait in a compile queue, and don't need an account.
 
 - **Offline and fast.** Sketches compile locally with arduino-cli, and builds are cached, so re-running an unchanged sketch is instant.
-- **Lightweight.** The whole app is about 170 KB (about 50 KB gzipped). The simulation runs in a background thread so the UI stays smooth.
+- **Lightweight.** The whole app is about 300 KB (about 90 KB gzipped). The simulation runs in a background thread so the UI stays smooth.
 - **Multiple microcontrollers.** Several boards run together in lock-step and can talk to each other over wires (UART today).
 - **Modular parts.** Each part is one folder: `part.json` + `model.ts` (behaviour) + `view.ts` (animation). Drop a folder in and it appears in the palette.
 - **No lock-in.** Axion reads and writes Wokwi-compatible `diagram.json` files.
 
-> Status: early (v0.1). Parts so far: Arduino Uno, LED (with PWM brightness), pushbutton, resistor. See the [roadmap](docs/ARCHITECTURE.md#roadmap).
+> Status: early (v0.2). See the [roadmap](docs/ARCHITECTURE.md#roadmap).
+
+## Parts
+
+| Category | Parts |
+|---|---|
+| Microcontrollers | Arduino Uno, Arduino Nano, Arduino Mega 2560 |
+| Actuators | DC motor, DC motor with quadrature encoder, L298N motor driver, servo (SG90) |
+| Input | Pushbutton, potentiometer |
+| Output | LED (with PWM brightness) |
+| Passive and power | Resistor, battery |
+
+Examples: blink and button, two Unos over serial, servo and potentiometer, encoder motor speed control, Mega driving two encoder motors.
 
 ## Getting started
 
@@ -34,7 +46,7 @@ To compile your own sketches, install **arduino-cli** once:
 Then run:
 
 ```sh
-npm run setup   # downloads the Arduino AVR core once; offline after that
+npm run setup   # downloads the Arduino AVR core and the Servo library once; offline after that
 ```
 
 The toolbar shows **Compiler: ready** when everything is in place.
@@ -53,6 +65,7 @@ Other commands:
 | Move, rotate, delete | Drag a part · select it and press **R** · select it and press **Delete** |
 | Pan and zoom | Drag the background · scroll wheel · **Fit** button |
 | Run | **▶ Start** (or F5 / Ctrl+Enter). Each microcontroller has its own code tab and serial monitor |
+| Interact | While running, press buttons and drag potentiometer knobs |
 | Prebuilt firmware | **Load .hex** runs any Intel HEX file on the selected board |
 | Share | **Save** writes an `.axion.json` project (circuit + code). **Export diagram** writes a Wokwi-compatible `diagram.json` |
 

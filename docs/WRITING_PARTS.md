@@ -40,47 +40,48 @@ A model is a function that receives a `PartContext` and returns any of these opt
 
 | Hook | When it is called | Use it to |
 |---|---|---|
-| `drive(pin)` | every circuit solve | say how the part drives a pin: `'high'`, `'low'`, `'pullup'`, `'pulldown'`, `'z'` |
+| `drive(pin)` | every circuit solve | say how the part drives a pin: `'high'` (5 V), `'low'` (0 V), a number of volts, `'pullup'`, `'pulldown'`, or `'z'` (not driving) |
 | `switches()` | when topology changes | return pin pairs currently connected (switches, relays) |
 | `resistors()` | when topology changes | return pin pairs linked by a resistor |
-| `onPinChange(pin, level)` | a net attached to the part changed level | react to inputs (`ctx.now()` gives the exact time) |
+| `onPinChange(pin, level)` | the voltage on one of the part's pins changed | react to inputs (`ctx.now()` gives the exact time) |
 | `onData(pin, channel, value)` | another part sent data on the same net | UART bytes today; I2C/SPI later |
-| `step(timeNs)` | every 50 µs of simulated time | advance internal physics or a CPU |
-| `input(event, data)` | the user interacted with the view | button press, slider value… |
+| `step(timeNs)` | every 50 µs of simulated time | only for parts that must produce events on their own (CPUs, encoders) |
+| `input(event, data)` | the user interacted with the view | button press, knob value… |
 | `state()` | ~60×/second | return what the view needs to draw |
 
-Call `ctx.invalidate()` whenever the result of `drive()` changes, and `ctx.invalidate(true)` when `switches()` or `resistors()` change.
+Useful context functions: `ctx.voltage(pin)` (volts or `null` if floating), `ctx.level(pin)` (`1`, `0` or `null`), `ctx.props` (values from `part.json` / the inspector), `ctx.now()` (ns).
 
-Example: a DC motor with direction and PWM speed control.
+**Outputs that depend on inputs need no events.** `drive()` is re-evaluated after every change, so a logic gate is just:
 
 ```ts
 import type { ModelFactory } from '../../core/types';
 
-const create: ModelFactory = (ctx) => {
-  let angle = 0;   // degrees
-  let dir = 0;     // -1, 0, +1
-  let last = ctx.now();
-  const maxDegPerNs = (Number(ctx.props.rpm) * 360) / 60e9;
-
-  // Rotate by however long the motor has been spinning in its current direction.
-  const integrate = () => {
-    const now = ctx.now();
-    angle = (angle + dir * maxDegPerNs * (now - last)) % 360;
-    last = now;
-  };
-
-  return {
-    onPinChange() {
-      integrate();   // finish the previous interval with the old direction
-      const a = ctx.level('IN1'), b = ctx.level('IN2');
-      dir = a === 1 && b === 0 ? 1 : a === 0 && b === 1 ? -1 : 0;
-    },
-    step: integrate,  // PWM edges average out into a lower speed automatically
-    state: () => ({ angle }),
-  };
-};
+const create: ModelFactory = (ctx) => ({
+  drive: (pin) => (pin === 'Y' ? (ctx.level('A') === 1 ? 'low' : 'high') : 'z'), // NOT gate
+});
 export default create;
 ```
+
+Call `ctx.invalidate()` when `drive()` would change for a reason the engine can't see (a button press, a timer inside the part), and `ctx.invalidate(true)` when `switches()` or `resistors()` change.
+
+**Prefer lazy physics over `step()`.** Most moving parts can compute their state from timestamps when something happens. The DC motor (`src/parts/dc-motor/model.ts`) updates its speed only in `onPinChange` and `state()`, using the shared helper in `src/physics/motor.ts`:
+
+```ts
+const create: ModelFactory = (ctx) => {
+  const motor = new MotorPhysics({ rpm: Number(ctx.props.rpm), ratedVoltage: Number(ctx.props.ratedVoltage) }, ctx.now());
+  return {
+    onPinChange() {
+      motor.setVoltage(across(ctx.voltage('+'), ctx.voltage('-')), ctx.now());
+    },
+    state() {
+      motor.advance(ctx.now());
+      return { angle: motor.angle % 360, rpm: Math.round(motor.rpm) };
+    },
+  };
+};
+```
+
+The servo (`src/parts/servo/model.ts`) works the same way: it timestamps the rising and falling edges on its PWM pin, turns the pulse width into a target angle, and moves toward it at a realistic speed.
 
 ## 3. `view.ts`
 
@@ -90,27 +91,26 @@ import type { PartView } from '../../core/types';
 const view: PartView = {
   create() {
     const el = document.createElement('div');
-    el.innerHTML = `<svg width="80" height="80" viewBox="0 0 80 80">
+    el.innerHTML = `<svg width="80" height="96" viewBox="0 0 80 96">
       <circle cx="40" cy="40" r="36" fill="#666"/>
       <g class="rotor"><rect x="38" y="8" width="4" height="32" fill="#fc0"/></g>
     </svg>`;
     return el;
   },
   update(el, s) {
-    el.querySelector<SVGGElement>('.rotor')!.style.transform = `rotate(${s.angle}deg)`;
-    el.querySelector<SVGGElement>('.rotor')!.style.transformOrigin = '40px 40px';
+    el.querySelector('.rotor')!.setAttribute('transform', `rotate(${s.angle} 40 40)`);
   },
   pins: () => [
-    { name: 'IN1', x: 30, y: 80 },
-    { name: 'IN2', x: 50, y: 80 },
+    { name: '+', x: 30, y: 96 },
+    { name: '-', x: 50, y: 96 },
   ],
 };
 export default view;
 ```
 
-- `pins()` returns pin positions in CSS px relative to the element's top-left corner. Parts built on [wokwi-elements](https://github.com/wokwi/wokwi-elements) (MIT) already expose `pinInfo`, so you can skip `pins()`.
-- Animate with CSS transforms or SVG attributes in `update()`. Only touch the DOM when a value actually changes if the part is heavy (e.g. an LCD).
-- `attach(el, send)` wires up interaction: `send('press')` reaches the model's `input()`.
+- `pins()` returns pin positions in CSS px relative to the element's top-left corner. Put pins on an edge (usually the bottom) so wires don't cross the drawing. Parts built on [wokwi-elements](https://github.com/wokwi/wokwi-elements) (MIT) already expose `pinInfo`, so you can skip `pins()`.
+- Animate with SVG attributes or CSS transforms in `update()`. `src/physics/motor-view.ts` has helpers for motor faces and labelled header pins.
+- `attach(el, send)` wires up interaction: `send('press')` reaches the model's `input()`. A `send('value', n)` while the simulation is stopped is saved as the part's `value` property (used by the potentiometer).
 
 ## 4. Test it
 

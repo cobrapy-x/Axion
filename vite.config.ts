@@ -9,5 +9,10 @@ export default defineConfig({
   preview: { host: '127.0.0.1', port: 5173 },
   worker: { format: 'es' },
   build: { target: 'es2022', sourcemap: true },
-  test: { environment: 'node', testTimeout: 30_000 },
+  test: {
+    environment: 'node',
+    testTimeout: 30_000,
+    // Parts are discovered with import.meta.glob; a persistent module cache would hide newly added parts.
+    fsModuleCache: false,
+  },
 });

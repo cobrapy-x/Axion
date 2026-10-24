@@ -1,0 +1,20 @@
+{
+  "type": "wokwi-arduino-mega",
+  "name": "Arduino Mega 2560",
+  "category": "Microcontrollers",
+  "description": "ATmega2560 @ 16 MHz: 54 digital pins (15 PWM), 16 analog inputs, 6 external interrupts (pins 2, 3, 18-21). Emulated by avr8js.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "mega",
+  "internal": [
+    ["GND.1", "GND.2", "GND.3", "GND.4", "GND.5"],
+    ["5V", "5V.1", "5V.2"],
+    ["SCL", "21"],
+    ["SDA", "20"]
+  ],
+  "mcu": {
+    "arch": "avr",
+    "fqbn": "arduino:avr:mega",
+    "template": "void setup() {\n  pinMode(LED_BUILTIN, OUTPUT);\n  Serial.begin(115200);\n  Serial.println(\"Hello from the Mega!\");\n}\n\nvoid loop() {\n  digitalWrite(LED_BUILTIN, HIGH);\n  delay(500);\n  digitalWrite(LED_BUILTIN, LOW);\n  delay(500);\n}\n"
+  }
+}

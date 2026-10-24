@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: Apache-2.0
-// One-time setup: checks for arduino-cli and installs the Arduino AVR core (Uno/Nano/Mega).
+// One-time setup: checks for arduino-cli, installs the Arduino AVR core (Uno/Nano/Mega)
+// and the libraries used by the examples (Servo).
 // After this, compiling works fully offline.
 import { execFileSync, spawnSync } from 'node:child_process';
 
@@ -27,7 +28,11 @@ if (!v) {
 }
 
 console.log(`Found ${v}`);
-for (const args of [['core', 'update-index'], ['core', 'install', 'arduino:avr']]) {
+for (const args of [
+  ['core', 'update-index'],
+  ['core', 'install', 'arduino:avr'],
+  ['lib', 'install', 'Servo'],
+]) {
   console.log(`\n> ${cli} ${args.join(' ')}`);
   const r = spawnSync(cli, args, { stdio: 'inherit' });
   if (r.status !== 0) {

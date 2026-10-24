@@ -1,0 +1,163 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    {
+      "type": "wokwi-arduino-uno",
+      "id": "uno",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "axion-l298n",
+      "id": "drv1",
+      "top": -230,
+      "left": 80,
+      "attrs": {}
+    },
+    {
+      "type": "axion-encoder-motor",
+      "id": "motor1",
+      "top": -260,
+      "left": 280,
+      "attrs": {}
+    },
+    {
+      "type": "axion-battery",
+      "id": "bat1",
+      "top": 0,
+      "left": -110,
+      "attrs": {
+        "voltage": "12"
+      }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot1",
+      "top": 140,
+      "left": -130,
+      "attrs": {
+        "value": "850"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "uno:7",
+      "drv1:IN3",
+      "purple",
+      []
+    ],
+    [
+      "uno:6",
+      "drv1:IN4",
+      "purple",
+      []
+    ],
+    [
+      "uno:5",
+      "drv1:ENB",
+      "orange",
+      []
+    ],
+    [
+      "drv1:OUT3",
+      "motor1:+",
+      "red",
+      [
+        "h20",
+        "v76"
+      ]
+    ],
+    [
+      "drv1:OUT4",
+      "motor1:-",
+      "black",
+      [
+        "h12",
+        "v66"
+      ]
+    ],
+    [
+      "motor1:A",
+      "uno:3",
+      "yellow",
+      [
+        "v78"
+      ]
+    ],
+    [
+      "motor1:B",
+      "uno:2",
+      "cyan",
+      [
+        "v90"
+      ]
+    ],
+    [
+      "motor1:GND",
+      "uno:GND.2",
+      "black",
+      [
+        "v350"
+      ]
+    ],
+    [
+      "motor1:VCC",
+      "uno:5V",
+      "red",
+      [
+        "v360"
+      ]
+    ],
+    [
+      "bat1:+",
+      "drv1:12V",
+      "red",
+      [
+        "v-30"
+      ]
+    ],
+    [
+      "bat1:-",
+      "uno:GND.1",
+      "black",
+      [
+        "v-16"
+      ]
+    ],
+    [
+      "uno:GND.1",
+      "drv1:GND",
+      "black",
+      []
+    ],
+    [
+      "pot1:VCC",
+      "uno:5V",
+      "red",
+      [
+        "v14"
+      ]
+    ],
+    [
+      "pot1:SIG",
+      "uno:A0",
+      "green",
+      [
+        "v34"
+      ]
+    ],
+    [
+      "pot1:GND",
+      "uno:GND.3",
+      "black",
+      [
+        "v44"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}

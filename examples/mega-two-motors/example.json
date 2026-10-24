@@ -1,0 +1,5 @@
+{
+  "name": "Mega: two encoder motors",
+  "description": "Arduino Mega + L298N driving two encoder motors like a small robot base; four external interrupts track both wheels.",
+  "sketches": { "mega": "sketch.ino" }
+}

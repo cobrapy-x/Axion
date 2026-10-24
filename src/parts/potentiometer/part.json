@@ -1,0 +1,13 @@
+{
+  "type": "wokwi-potentiometer",
+  "name": "Potentiometer",
+  "category": "Input",
+  "description": "Rotary potentiometer. SIG outputs a voltage between GND and VCC set by the knob (turn it while the simulation runs). Read it with analogRead().",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "pot",
+  "interactive": true,
+  "props": {
+    "value": { "type": "number", "label": "Position (0-1023)", "default": 0 }
+  }
+}

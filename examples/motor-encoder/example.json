@@ -1,0 +1,5 @@
+{
+  "name": "Encoder motor speed control (L298N)",
+  "description": "A potentiometer sets motor speed and direction through an L298N; interrupts count encoder pulses to measure RPM.",
+  "sketches": { "uno": "sketch.ino" }
+}

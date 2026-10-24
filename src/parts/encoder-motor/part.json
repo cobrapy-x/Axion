@@ -1,0 +1,14 @@
+{
+  "type": "axion-encoder-motor",
+  "name": "DC motor + encoder",
+  "category": "Actuators",
+  "description": "Gear motor with a quadrature Hall encoder. A and B output square waves 90° apart (A leads B when turning forward). Power the encoder from VCC (3.3-5 V) and GND; count edges with attachInterrupt().",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "emotor",
+  "props": {
+    "rpm": { "type": "number", "label": "No-load speed at rated voltage (RPM)", "default": 200 },
+    "ratedVoltage": { "type": "number", "label": "Rated voltage (V)", "default": 12 },
+    "ppr": { "type": "number", "label": "Encoder pulses per output revolution (per channel)", "default": 330 }
+  }
+}

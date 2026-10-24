@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    {
+      "type": "wokwi-arduino-uno",
+      "id": "uno",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "servo1",
+      "top": -130,
+      "left": 330,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot1",
+      "top": 140,
+      "left": -130,
+      "attrs": {
+        "value": "300"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "uno:9",
+      "servo1:PWM",
+      "orange",
+      [
+        "v-70"
+      ]
+    ],
+    [
+      "servo1:V+",
+      "uno:5V",
+      "red",
+      [
+        "h-15",
+        "v300",
+        "h-155"
+      ]
+    ],
+    [
+      "servo1:GND",
+      "uno:GND.2",
+      "black",
+      [
+        "h-25",
+        "v299.5",
+        "h-135.5"
+      ]
+    ],
+    [
+      "pot1:VCC",
+      "uno:5V",
+      "red",
+      [
+        "v14"
+      ]
+    ],
+    [
+      "pot1:SIG",
+      "uno:A0",
+      "green",
+      [
+        "v34"
+      ]
+    ],
+    [
+      "pot1:GND",
+      "uno:GND.3",
+      "black",
+      [
+        "v44"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}

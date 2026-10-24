@@ -1,0 +1,9 @@
+{
+  "type": "axion-l298n",
+  "name": "L298N motor driver",
+  "category": "Actuators",
+  "description": "Dual H-bridge for two DC motors. IN1/IN2 set motor A's direction (IN3/IN4 for B); PWM on ENA/ENB sets speed (leave ENA/ENB unconnected = jumper on = full speed). Power it from 12V/GND; outputs lose ~1.4 V like the real chip. The 5V pin outputs 5 V when 12V ≥ 7 V.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "drv"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Servo + potentiometer (knob)",
+  "description": "Turn the potentiometer and the servo follows it. Uses Servo.h and analogRead().",
+  "sketches": { "uno": "sketch.ino" }
+}

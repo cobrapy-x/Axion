@@ -36,7 +36,7 @@ interface PartNode {
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const HINT_IDLE = 'Drag parts in from the left · click a pin to start a wire · R rotate · Del delete · scroll to zoom · drag background to pan';
 const HINT_DRAW = 'Click empty space to add a bend · click another pin to finish · Esc to cancel';
-const HINT_RUN = 'Simulation running: click buttons to interact. Stop to edit the circuit.';
+const HINT_RUN = 'Simulation running: press buttons and turn knobs to interact. Stop to edit the circuit.';
 
 export function propsOf(part: DiagramPart, ui?: PartUI): Props {
   const props: Props = {};
@@ -112,6 +112,15 @@ export class Workspace {
     await this.measure(node);
     part.left = Math.round(center.x - node.w / 2);
     part.top = Math.round(center.y - node.h / 2);
+    if (!at) {
+      // Clicked in the palette: cascade so repeated adds don't stack exactly on top of each other.
+      const taken = (x: number, y: number) =>
+        this.diagram.parts.some((p) => p !== part && Math.abs(p.left - x) < 20 && Math.abs(p.top - y) < 20);
+      while (taken(part.left, part.top)) {
+        part.left += 30;
+        part.top += 30;
+      }
+    }
     this.placeNode(node);
     this.render();
     this.select({ kind: 'part', id: part.id });
@@ -228,6 +237,8 @@ export class Workspace {
       if (ui.manifest.interactive) wrap.classList.add('interactive');
       ui.view.attach?.(el, (event, data) => {
         if (this.running) this.ev.input(part.id, event, data);
+        // While editing, a control's 'value' (e.g. a potentiometer knob) becomes its starting value.
+        else if (event === 'value') this.setPartAttr(part.id, 'value', String(data));
       });
     } else {
       el = document.createElement('div');

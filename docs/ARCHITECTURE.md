@@ -22,7 +22,8 @@
 | `src/core/types.ts` | The part contract: `PartManifest`, `PartModel`, `PartView` |
 | `src/core/engine.ts` | Netlist + solver + time stepping. No DOM, runs in Node for tests |
 | `src/core/diagram.ts` | `diagram.json` (Wokwi-compatible) + project format, wire routes |
-| `src/mcu/` | CPU wrappers (`avr.ts` = ATmega328P on avr8js) |
+| `src/mcu/` | Chip descriptions (`avr.ts`: ATmega328P, ATmega2560 on avr8js) and the shared Arduino board model (`avr-board.ts`) |
+| `src/physics/` | Shared physics and drawing helpers (DC motor dynamics) |
 | `src/parts/<name>/` | One folder per part: `part.json`, `model.ts`, `view.ts` |
 | `src/sim/` | Worker entry + message protocol + main-thread client |
 | `src/editor/workspace.ts` | The canvas editor |
@@ -31,19 +32,25 @@
 
 ## The electrical model
 
-Axion uses a **digital model with drive strengths**, which is fast and good enough for most microcontroller circuits:
+Axion uses **voltages with drive strengths**, which is fast and good enough for most microcontroller circuits:
 
 1. Wires, a part's internal connections and closed switches join pins into **nets** (union-find).
-2. Each pin drives `high`, `low`, `pullup`, `pulldown` or `z`. On a net, strong beats weak; a strong HIGH together with a strong LOW is reported as a **short circuit**.
-3. Resistors join nets *weakly*: a net with no strong driver takes its level from a strongly driven neighbour through a resistor, and that beats an MCU's internal pull-up.
-4. The engine is **event-driven**: it re-solves only when a part reports a change (`invalidate`), and only notifies parts whose pin levels changed.
+2. Each pin drives a strong voltage (`'high'` = 5 V, `'low'` = 0 V, or any number such as 3.3 or 12), a weak `pullup` / `pulldown`, or nothing (`'z'`). On a net, strong beats weak. Two different strong voltages on one net are reported as a **short circuit**.
+3. Resistors join nets *weakly*: a net with no strong driver takes its voltage from a strongly driven neighbour through a resistor, and that beats an MCU's internal pull-up.
+4. Logic levels come from voltages: ≥ 3 V is HIGH, ≤ 1.5 V is LOW, in between is undefined.
+5. The engine is **event-driven**: it re-solves only when a part reports a change (`invalidate`). After each solve, parts whose pin voltage changed are notified, and the solve repeats until nothing changes. This lets signals ripple through behavioural parts (MCU pin → L298N input → L298N output → motor) without any part needing a clock.
 
-Planned next: an analog layer (voltages, currents) that parts can opt into. A potentiometer feeding `analogRead()`, an LED that burns out without a resistor and a motor's back-EMF all need it. Parts that only need logic levels will keep using the fast digital path.
+Analog values work the same way: a potentiometer drives its wiper to a fraction of VCC, and `analogRead()` samples the pin's voltage at the moment of the conversion.
+
+**Not modelled yet:** currents and real voltage dividers (two resistors between different voltages give an undefined level), capacitors and inductors. A full circuit solver (for example ngspice, which is BSD licensed) could be added later for parts that need it.
+
+**Motors** use a first-order model: speed approaches `rpm × V / Vrated` with a time constant (0.12 s while driven, 0.4 s while coasting). Between pin changes the voltage is constant, so the motor is advanced with the exact solution of that equation. PWM averages out naturally, and an idle motor costs nothing.
 
 ## Time and multiple MCUs
 
 - Each MCU runs on its own clock (`cycles / frequency`). Before reporting a pin change it calls `ctx.advanceTime(ns)`, so other parts (an LED measuring PWM duty, for example) see exact timestamps.
-- The engine advances all MCUs in **quanta of 50 µs**, so several boards stay in lock-step.
+- The engine advances all MCUs in **quanta of 50 µs**, so several boards stay in lock-step. MCUs run first in each quantum, then parts with their own physics (e.g. encoders), so those see MCU pin changes with exact timestamps.
+- Encoders check their position once per quantum, so edges are accurate to 50 µs. That is plenty for typical gear motors (a few thousand edges per second).
 - MCU↔MCU links (UART today) use **transaction-level** messages (`sendData` / `onData`): a whole byte is delivered instead of simulating every bit edge. This is much faster and is what lets many boards run together.
 - The worker paces simulated time to real time. If the circuit is too heavy it runs slower than real time and the toolbar shows the real speed percentage.
 
@@ -53,7 +60,7 @@ Planned next: an analog layer (voltages, currents) that parts can opt into. A po
 
 | Goal | Choice |
 |---|---|
-| Lightweight | Plain TypeScript + Vite, no UI framework. The production build is ~170 KB (~50 KB gzipped). Tauri (planned) wraps it in a ~10 MB desktop app |
+| Lightweight | Plain TypeScript + Vite, no UI framework. The production build is ~300 KB (~90 KB gzipped). Tauri (planned) wraps it in a ~10 MB desktop app |
 | Offline | Everything runs locally. arduino-cli downloads a board's toolchain once, then compiles offline. Builds are cached by content hash |
 | No fragmentation | Wokwi-compatible `diagram.json`, a stable part contract, parts as self-contained folders |
 | Don't reinvent | avr8js (CPU), wokwi-elements (visuals), arduino-cli (compiler) |
@@ -62,10 +69,11 @@ Planned next: an analog layer (voltages, currents) that parts can opt into. A po
 ## Roadmap
 
 1. ~~Uno + LED + button + resistor, wiring editor, local compile, multi-MCU UART~~ ✅
-2. More parts: potentiometer + analog layer, DC motor, motor with quadrature encoder, servo, buzzer, 16×2 LCD (I2C), 7-segment
-3. I2C/SPI transaction links between MCUs and peripherals
-4. One worker per MCU, multi-core
-5. Raspberry Pi Pico (rp2040js, MIT)
-6. Tauri desktop app (Windows/macOS/Linux installers built by CI)
-7. ESP32 via Espressif's QEMU (GPL-2.0, run as a separate process)
-8. A part registry: install community parts from a Git URL
+2. ~~Analog layer, potentiometer, servo, DC motor, encoder motor, L298N, battery, Arduino Nano and Mega~~ ✅
+3. More parts: buzzer, 16×2 LCD (I2C), 7-segment, slide switch, ultrasonic sensor
+4. I2C/SPI transaction links between MCUs and peripherals
+5. One worker per MCU, multi-core
+6. Raspberry Pi Pico (rp2040js, MIT)
+7. Tauri desktop app (Windows/macOS/Linux installers built by CI)
+8. ESP32 via Espressif's QEMU (GPL-2.0, run as a separate process)
+9. A part registry: install community parts from a Git URL
