@@ -1,0 +1,22 @@
+{
+  "type": "wokwi-pushbutton",
+  "name": "Pushbutton",
+  "category": "Input",
+  "description": "Momentary tactile switch. Pins 1.l/1.r and 2.l/2.r are connected internally; pressing connects side 1 to side 2. Ctrl/Cmd+click to latch.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "btn",
+  "interactive": true,
+  "internal": [
+    ["1.l", "1.r"],
+    ["2.l", "2.r"]
+  ],
+  "props": {
+    "color": {
+      "type": "select",
+      "label": "Color",
+      "default": "red",
+      "options": ["red", "green", "blue", "yellow", "white", "black"]
+    }
+  }
+}

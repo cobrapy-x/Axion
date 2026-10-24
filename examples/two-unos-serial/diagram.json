@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    { "type": "wokwi-arduino-uno", "id": "uno1", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-arduino-uno", "id": "uno2", "top": 0, "left": 360, "attrs": {} },
+    { "type": "wokwi-led", "id": "led1", "top": -200, "left": 524, "attrs": { "color": "yellow" } },
+    { "type": "wokwi-resistor", "id": "r1", "top": -125, "left": 455, "attrs": { "value": "220" } }
+  ],
+  "connections": [
+    ["uno1:1", "uno2:0", "orange", ["v-30"]],
+    ["uno1:GND.2", "uno2:GND.2", "black", ["v20"]],
+    ["uno2:7", "led1:A", "green", []],
+    ["led1:C", "r1:2", "black", ["v20"]],
+    ["r1:1", "uno2:GND.1", "black", ["h-10", "v70"]]
+  ],
+  "dependencies": {}
+}

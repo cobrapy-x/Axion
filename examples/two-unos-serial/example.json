@@ -1,0 +1,5 @@
+{
+  "name": "Two Unos talking over serial",
+  "description": "Multi-MCU demo: uno1 sends lines over its TX pin, uno2 receives them on RX and toggles an LED.",
+  "sketches": { "uno1": "sender.ino", "uno2": "receiver.ino" }
+}

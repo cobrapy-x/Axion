@@ -1,0 +1,16 @@
+{
+  "type": "wokwi-resistor",
+  "name": "Resistor",
+  "category": "Passive",
+  "description": "Resistor. Acts as a weak link: pull-up / pull-down / current limiting.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "r",
+  "props": {
+    "value": {
+      "type": "number",
+      "label": "Resistance (Ω)",
+      "default": 220
+    }
+  }
+}

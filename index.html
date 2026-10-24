@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Axion – offline circuit and microcontroller simulator" />
+    <title>Axion</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2314b8a6'/%3E%3Cpath d='M9 24 16 8l7 16M11.5 18h9' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <header class="toolbar">
+      <div class="brand"><span class="logo">A</span>Axion</div>
+      <div class="group">
+        <button id="btn-new" title="New empty project">New</button>
+        <select id="sel-example" title="Load an example">
+          <option value="">Examples…</option>
+        </select>
+        <button id="btn-open" title="Open an Axion project or a Wokwi diagram.json">Open…</button>
+        <button id="btn-save" title="Save project (.axion.json)">Save</button>
+        <button id="btn-export" title="Export a Wokwi-compatible diagram.json">Export diagram</button>
+        <input id="file-open" type="file" accept=".json,application/json" hidden />
+      </div>
+      <div class="group">
+        <button id="btn-run" class="primary" title="Compile and start (F5)">▶ Start</button>
+        <button id="btn-stop" title="Stop simulation" disabled>■ Stop</button>
+      </div>
+      <div class="status">
+        <span id="sim-status">Stopped</span>
+        <span id="compiler-status" class="pill">Compiler: checking…</span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="palette" id="palette" aria-label="Parts"></aside>
+
+      <section class="workspace" id="workspace" tabindex="0" aria-label="Circuit">
+        <div class="inspector" id="inspector" hidden></div>
+        <div class="hint" id="hint"></div>
+        <div class="zoom-controls">
+          <button id="btn-zoom-in" title="Zoom in">+</button>
+          <button id="btn-zoom-out" title="Zoom out">−</button>
+          <button id="btn-fit" title="Fit circuit to view">Fit</button>
+        </div>
+      </section>
+
+      <section class="side">
+        <div class="tabs" id="mcu-tabs"></div>
+        <div class="editor">
+          <pre class="gutter" id="gutter" aria-hidden="true"></pre>
+          <textarea id="code" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Sketch"></textarea>
+        </div>
+        <div class="editor-bar">
+          <span id="fw-badge" class="pill" hidden>Using loaded .hex</span>
+          <button id="btn-load-hex" title="Run a prebuilt .hex file instead of compiling">Load .hex</button>
+          <button id="btn-clear-hex" hidden>Use sketch</button>
+          <input id="file-hex" type="file" accept=".hex" hidden />
+        </div>
+        <details class="log" id="log-box">
+          <summary>Compiler output</summary>
+          <pre id="log"></pre>
+        </details>
+        <div class="serial">
+          <div class="serial-head">
+            <span>Serial monitor <span id="serial-target"></span></span>
+            <button id="btn-clear-serial">Clear</button>
+          </div>
+          <pre id="serial-out" aria-live="polite"></pre>
+          <form id="serial-form" class="serial-input">
+            <input id="serial-in" placeholder="Send to the board…" autocomplete="off" />
+            <button type="submit">Send</button>
+          </form>
+        </div>
+      </section>
+    </main>
+    <div class="toast" id="toast" hidden></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

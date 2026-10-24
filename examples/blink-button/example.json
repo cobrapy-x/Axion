@@ -1,0 +1,5 @@
+{
+  "name": "Blink, fade & button",
+  "description": "Blinking LED, PWM-faded LED, a pushbutton with INPUT_PULLUP and serial echo.",
+  "sketches": { "uno": "sketch.ino" }
+}

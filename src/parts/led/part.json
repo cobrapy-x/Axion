@@ -1,0 +1,17 @@
+{
+  "type": "wokwi-led",
+  "name": "LED",
+  "category": "Output",
+  "description": "Light-emitting diode. Brightness follows PWM duty cycle.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "led",
+  "props": {
+    "color": {
+      "type": "select",
+      "label": "Color",
+      "default": "red",
+      "options": ["red", "green", "blue", "yellow", "orange", "white", "purple"]
+    }
+  }
+}
