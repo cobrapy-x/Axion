@@ -1,0 +1,23 @@
+{
+  "type": "axion-coin-cell",
+  "name": "Coin cell (CR2032)",
+  "category": "Power",
+  "description": "A 3 volt CR2032 coin cell in a holder, enough to light an LED. Use \"Cells in series\" to stack up to 4 (3–12 V). Connect '−' to the circuit's GND.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "bat",
+  "tags": [
+    "basic",
+    "battery"
+  ],
+  "props": {
+    "count": {
+      "type": "number",
+      "label": "Cells in series",
+      "default": 1,
+      "min": 1,
+      "max": 4,
+      "step": 1
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "name": "LED & button on a breadboard",
+  "description": "An Uno with an LED, a 220 Ω resistor and a pushbutton plugged into a half breadboard. Jumper wires bring pins 13 and 2, 5V and GND to the breadboard; hold the button to blink faster.",
+  "sketches": { "uno": "sketch.ino" }
+}

@@ -1,0 +1,10 @@
+{
+  "type": "axion-battery-pack-4aa",
+  "name": "4×AA battery pack (6V)",
+  "category": "Power",
+  "description": "Kept so older projects still open. Use the AA battery and set \"Cells in series\" to 4 instead.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "bat",
+  "hidden": true
+}

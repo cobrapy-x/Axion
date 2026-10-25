@@ -8,6 +8,13 @@
   "idPrefix": "pot",
   "interactive": true,
   "props": {
-    "value": { "type": "number", "label": "Position (0-1023)", "default": 0 }
-  }
+    "value": {
+      "type": "number",
+      "label": "Position (0-1023)",
+      "default": 0
+    }
+  },
+  "tags": [
+    "basic"
+  ]
 }

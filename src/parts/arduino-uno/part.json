@@ -7,13 +7,26 @@
   "license": "Apache-2.0",
   "idPrefix": "uno",
   "internal": [
-    ["GND.1", "GND.2", "GND.3"],
-    ["A4", "A4.2"],
-    ["A5", "A5.2"]
+    [
+      "GND.1",
+      "GND.2",
+      "GND.3"
+    ],
+    [
+      "A4",
+      "A4.2"
+    ],
+    [
+      "A5",
+      "A5.2"
+    ]
   ],
   "mcu": {
     "arch": "avr",
     "fqbn": "arduino:avr:uno",
     "template": "void setup() {\n  pinMode(LED_BUILTIN, OUTPUT);\n  Serial.begin(115200);\n  Serial.println(\"Hello from Axion!\");\n}\n\nvoid loop() {\n  digitalWrite(LED_BUILTIN, HIGH);\n  delay(500);\n  digitalWrite(LED_BUILTIN, LOW);\n  delay(500);\n}\n"
-  }
+  },
+  "tags": [
+    "basic"
+  ]
 }

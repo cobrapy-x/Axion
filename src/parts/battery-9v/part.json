@@ -1,0 +1,22 @@
+{
+  "type": "axion-battery-9v",
+  "name": "9V battery",
+  "category": "Power",
+  "description": "A 9 volt battery with snap terminals. Use \"Batteries in series\" to stack up to 4 (9–36 V). '+' is above '−'; connect '−' to the circuit's GND.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "bat",
+  "tags": [
+    "basic"
+  ],
+  "props": {
+    "count": {
+      "type": "number",
+      "label": "Batteries in series",
+      "default": 1,
+      "min": 1,
+      "max": 4,
+      "step": 1
+    }
+  }
+}

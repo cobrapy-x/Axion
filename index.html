@@ -4,75 +4,126 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Axion – offline circuit and microcontroller simulator" />
+    <meta name="color-scheme" content="light dark" />
     <title>Axion</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2314b8a6'/%3E%3Cpath d='M9 24 16 8l7 16M11.5 18h9' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230d9488'/%3E%3Cpath d='M9 24 16 8l7 16M11.5 18h9' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
   </head>
   <body>
-    <header class="toolbar">
-      <div class="brand"><span class="logo">A</span>Axion</div>
-      <div class="group">
-        <button id="btn-new" title="New empty project">New</button>
-        <select id="sel-example" title="Load an example">
-          <option value="">Examples…</option>
-        </select>
-        <button id="btn-open" title="Open an Axion project or a Wokwi diagram.json">Open…</button>
-        <button id="btn-save" title="Save project (.axion.json)">Save</button>
-        <button id="btn-export" title="Export a Wokwi-compatible diagram.json">Export diagram</button>
-        <input id="file-open" type="file" accept=".json,application/json" hidden />
+    <header class="toolbar" aria-label="Toolbar">
+      <div class="brand" id="brand"><span class="brand-name">Axion</span></div>
+
+      <div class="tools" role="toolbar" aria-label="Edit">
+        <div class="tgroup">
+          <button class="icon-btn" id="btn-copy" data-icon="copy" data-tip="Copy" disabled></button>
+          <button class="icon-btn" id="btn-paste" data-icon="paste" data-tip="Paste" disabled></button>
+          <button class="icon-btn" id="btn-delete" data-icon="trash" data-tip="Delete" disabled></button>
+        </div>
+        <span class="sep" aria-hidden="true"></span>
+        <div class="tgroup">
+          <button class="icon-btn" id="btn-undo" data-icon="undo" data-tip="Undo" disabled></button>
+          <button class="icon-btn" id="btn-redo" data-icon="redo" data-tip="Redo" disabled></button>
+        </div>
+        <span class="sep" aria-hidden="true"></span>
+        <div class="tgroup">
+          <button class="icon-btn" id="btn-rotate" data-icon="rotate" data-tip="Rotate" disabled></button>
+        </div>
+        <span class="sep" aria-hidden="true"></span>
+        <div class="tgroup menu-wrap">
+          <button class="icon-btn swatch-btn" id="btn-wire-color" title="Wire colour: Auto" aria-label="Wire colour: Auto">
+            <span class="swatch auto" id="wire-swatch"></span><span class="caret" data-icon="caret" data-icon-size="14"></span>
+          </button>
+          <div class="menu color-menu" id="wire-color-menu" role="menu" aria-label="Wire colour"></div>
+        </div>
       </div>
-      <div class="group">
-        <button id="btn-run" class="primary" title="Compile and start (F5)">▶ Start</button>
-        <button id="btn-stop" title="Stop simulation" disabled>■ Stop</button>
-      </div>
-      <div class="status">
-        <span id="sim-status">Stopped</span>
-        <span id="compiler-status" class="pill">Compiler: checking…</span>
+
+      <div class="actions">
+        <button class="btn ghost" id="btn-code" data-icon="code" aria-pressed="false" title="Show the code editor and serial monitor"><span class="label">Code</span></button>
+        <button class="btn primary" id="btn-run" data-icon="play" title="Compile and start the simulation (F5)"><span class="label">Start Simulation</span></button>
+        <div class="menu-wrap">
+          <button class="btn ghost" id="btn-file" title="File and examples"><span class="label">File</span><span class="caret" data-icon="caret" data-icon-size="14"></span></button>
+          <div class="menu file-menu" id="file-menu" role="menu" aria-label="File">
+            <button role="menuitem" id="btn-new" data-icon="file-plus">New</button>
+            <button role="menuitem" id="btn-open" data-icon="folder" title="Open an Axion project or a Wokwi diagram.json">Open…</button>
+            <button role="menuitem" id="btn-save" data-icon="save" title="Save project (.axion.json)">Save</button>
+            <button role="menuitem" id="btn-export" data-icon="download" title="Export a Wokwi-compatible diagram.json">Export diagram.json</button>
+            <div class="menu-sep" role="separator"></div>
+            <div class="menu-label">Examples</div>
+            <div id="example-list"></div>
+          </div>
+          <input id="file-open" type="file" accept=".json,application/json" hidden />
+        </div>
       </div>
     </header>
 
-    <main class="layout">
-      <aside class="palette" id="palette" aria-label="Parts"></aside>
-
+    <main class="layout" id="layout">
       <section class="workspace" id="workspace" tabindex="0" aria-label="Circuit">
         <div class="inspector" id="inspector" hidden></div>
-        <div class="hint" id="hint"></div>
+        <button class="fab" id="btn-fit" data-icon="fit" data-tip="Fit to view"></button>
+        <div class="statusbar">
+          <span class="hint" id="hint"></span>
+          <span class="status-line">
+            <span id="sim-status" class="sim-status">Stopped</span>
+            <span id="compiler-status" class="pill">Compiler: checking…</span>
+          </span>
+        </div>
         <div class="zoom-controls">
-          <button id="btn-zoom-in" title="Zoom in">+</button>
-          <button id="btn-zoom-out" title="Zoom out">−</button>
-          <button id="btn-fit" title="Fit circuit to view">Fit</button>
+          <button class="icon-btn" id="btn-zoom-out" data-icon="minus" data-tip="Zoom out"></button>
+          <button class="icon-btn" id="btn-zoom-in" data-icon="plus" data-tip="Zoom in"></button>
         </div>
       </section>
 
-      <section class="side">
-        <div class="tabs" id="mcu-tabs"></div>
-        <div class="editor">
-          <pre class="gutter" id="gutter" aria-hidden="true"></pre>
-          <textarea id="code" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Sketch"></textarea>
-        </div>
-        <div class="editor-bar">
-          <span id="fw-badge" class="pill" hidden>Using loaded .hex</span>
-          <button id="btn-load-hex" title="Run a prebuilt .hex file instead of compiling">Load .hex</button>
-          <button id="btn-clear-hex" hidden>Use sketch</button>
-          <input id="file-hex" type="file" accept=".hex" hidden />
-        </div>
-        <details class="log" id="log-box">
-          <summary>Compiler output</summary>
-          <pre id="log"></pre>
-        </details>
-        <div class="serial">
-          <div class="serial-head">
-            <span>Serial monitor <span id="serial-target"></span></span>
-            <button id="btn-clear-serial">Clear</button>
+      <aside class="side" id="side" data-mode="parts" aria-label="Side panel">
+        <button class="side-toggle" id="btn-side" aria-controls="side-inner" aria-expanded="true" title="Hide panel" aria-label="Hide panel"></button>
+        <div class="side-inner" id="side-inner">
+          <div class="panel-parts" id="panel-parts">
+            <div class="panel-head">
+              <label class="field-label" for="sel-filter">Components</label>
+              <div class="head-row">
+                <div class="select-wrap"><select id="sel-filter" aria-label="Component group"></select></div>
+                <button class="icon-btn view-toggle" id="btn-view" title="Show as list" aria-label="Show as list"></button>
+              </div>
+              <div class="search" data-icon="search" data-icon-size="16">
+                <input type="search" id="part-search" placeholder="Search" aria-label="Search components" autocomplete="off" />
+              </div>
+            </div>
+            <div class="tiles grid" id="palette" aria-label="Components"></div>
           </div>
-          <pre id="serial-out" aria-live="polite"></pre>
-          <form id="serial-form" class="serial-input">
-            <input id="serial-in" placeholder="Send to the board…" autocomplete="off" />
-            <button type="submit">Send</button>
-          </form>
+
+          <div class="panel-code" id="panel-code" hidden>
+            <div class="code-head">
+              <div class="tabs" id="mcu-tabs" role="tablist" aria-label="Sketches"></div>
+              <button class="icon-btn" id="btn-code-close" data-icon="close" data-tip="Close code"></button>
+            </div>
+            <div class="editor">
+              <pre class="gutter" id="gutter" aria-hidden="true"></pre>
+              <textarea id="code" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Sketch"></textarea>
+            </div>
+            <div class="editor-bar">
+              <button class="btn small" id="btn-load-hex" data-icon="upload" data-icon-size="15" title="Run a prebuilt .hex file instead of compiling">Load .hex</button>
+              <button class="btn small" id="btn-clear-hex" hidden>Use sketch</button>
+              <span id="fw-badge" class="pill" hidden>Using loaded .hex</span>
+              <input id="file-hex" type="file" accept=".hex" hidden />
+            </div>
+            <details class="log" id="log-box">
+              <summary>Compiler output</summary>
+              <pre id="log"></pre>
+            </details>
+            <div class="serial">
+              <div class="serial-head">
+                <span class="serial-title" data-icon="terminal" data-icon-size="16">Serial monitor <span id="serial-target"></span></span>
+                <button class="btn small ghost" id="btn-clear-serial">Clear</button>
+              </div>
+              <pre id="serial-out" aria-live="polite"></pre>
+              <form id="serial-form" class="serial-input">
+                <input id="serial-in" placeholder="Send to the board…" autocomplete="off" aria-label="Serial input" />
+                <button class="btn small" type="submit">Send</button>
+              </form>
+            </div>
+          </div>
         </div>
-      </section>
+      </aside>
     </main>
-    <div class="toast" id="toast" hidden></div>
+    <div class="toast" id="toast" role="status" hidden></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

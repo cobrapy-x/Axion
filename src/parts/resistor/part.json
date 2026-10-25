@@ -12,5 +12,8 @@
       "label": "Resistance (Ω)",
       "default": 220
     }
-  }
+  },
+  "tags": [
+    "basic"
+  ]
 }

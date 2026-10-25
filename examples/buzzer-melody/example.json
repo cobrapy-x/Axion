@@ -1,0 +1,7 @@
+{
+  "name": "Buzzer melody",
+  "description": "Plays “Twinkle, Twinkle, Little Star” on a piezo buzzer with tone() and prints each note name. Turn your speakers on.",
+  "sketches": {
+    "uno": "sketch.ino"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "type": "wokwi-buzzer",
+  "name": "Piezo buzzer",
+  "category": "Output",
+  "description": "Passive piezo buzzer: it beeps at the frequency of the square wave on its legs. Connect leg 2 (red) to a pin and leg 1 to GND, then use tone(pin, frequency) and noTone(pin). You hear it through your speakers while the simulation runs.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "bz",
+  "tags": ["basic"]
+}

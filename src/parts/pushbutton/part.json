@@ -8,15 +8,31 @@
   "idPrefix": "btn",
   "interactive": true,
   "internal": [
-    ["1.l", "1.r"],
-    ["2.l", "2.r"]
+    [
+      "1.l",
+      "1.r"
+    ],
+    [
+      "2.l",
+      "2.r"
+    ]
   ],
   "props": {
     "color": {
       "type": "select",
       "label": "Color",
       "default": "red",
-      "options": ["red", "green", "blue", "yellow", "white", "black"]
+      "options": [
+        "red",
+        "green",
+        "blue",
+        "yellow",
+        "white",
+        "black"
+      ]
     }
-  }
+  },
+  "tags": [
+    "basic"
+  ]
 }

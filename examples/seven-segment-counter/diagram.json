@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    {
+      "type": "wokwi-arduino-uno",
+      "id": "uno",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-7segment",
+      "id": "seg1",
+      "top": -142,
+      "left": 160,
+      "attrs": {
+        "common": "cathode"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rc",
+      "top": -86.25,
+      "left": 86.1,
+      "attrs": {
+        "value": "220"
+      },
+      "rotate": 90
+    }
+  ],
+  "connections": [
+    [
+      "seg1:G",
+      "uno:11",
+      "purple",
+      [
+        "v-10"
+      ]
+    ],
+    [
+      "seg1:F",
+      "uno:12",
+      "violet",
+      [
+        "v-20"
+      ]
+    ],
+    [
+      "seg1:COM.2",
+      "rc:1",
+      "black",
+      [
+        "v-30"
+      ]
+    ],
+    [
+      "rc:2",
+      "uno:GND.1",
+      "black",
+      []
+    ],
+    [
+      "seg1:A",
+      "uno:2",
+      "orange",
+      [
+        "v-20"
+      ]
+    ],
+    [
+      "seg1:B",
+      "uno:3",
+      "yellow",
+      [
+        "v-10"
+      ]
+    ],
+    [
+      "seg1:E",
+      "uno:8",
+      "blue",
+      [
+        "v30"
+      ]
+    ],
+    [
+      "seg1:D",
+      "uno:7",
+      "cyan",
+      [
+        "v20"
+      ]
+    ],
+    [
+      "seg1:C",
+      "uno:6",
+      "green",
+      [
+        "v10"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}

@@ -1,0 +1,9 @@
+{
+  "type": "axion-pnp",
+  "name": "PNP transistor (2N2907)",
+  "category": "Semiconductors",
+  "description": "A small PNP transistor used as a high-side switch: it conducts from the emitter (E) to the collector (C) when the base (B) is pulled at least 0.6 V below E. Connect E to the supply (5V), drive B through a 1kΩ resistor (LOW = on) and put the load between C and GND. Switching model only (no amplification).",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "q"
+}

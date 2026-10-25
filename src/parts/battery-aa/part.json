@@ -1,0 +1,22 @@
+{
+  "type": "axion-battery-aa",
+  "name": "AA battery",
+  "category": "Power",
+  "description": "1.5 V AA cells in a holder. Use \"Cells in series\" to add cells (1–8): 4 cells give 6 V, 8 cells give 12 V for motors. Connect '−' to the circuit's GND.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "bat",
+  "tags": [
+    "basic"
+  ],
+  "props": {
+    "count": {
+      "type": "number",
+      "label": "Cells in series",
+      "default": 1,
+      "min": 1,
+      "max": 8,
+      "step": 1
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "type": "wokwi-slide-switch",
+  "name": "Slide switch",
+  "category": "Input",
+  "description": "On/off slide switch with three legs. The middle leg (2) connects to leg 1 when the handle is on the left and to leg 3 when it is on the right. Click it to flip it, even while the simulation runs.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "sw",
+  "interactive": true,
+  "props": {
+    "value": { "type": "number", "label": "Start position (0 = left, 1 = right)", "default": 0 }
+  },
+  "tags": ["basic"]
+}

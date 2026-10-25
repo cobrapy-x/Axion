@@ -1,0 +1,57 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* Workspace styles for breadboards and per-part pin hit-targets (imported by workspace.ts). */
+
+/* Each part's pins sit in a box transformed exactly like the part. */
+.pin-group {
+  position: absolute;
+  pointer-events: none;
+}
+.pin-group .pin {
+  pointer-events: auto;
+}
+
+.part.carrier.on-hole {
+  cursor: crosshair;
+}
+.bb-overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+  pointer-events: none;
+}
+/* Holes with a pin plugged in */
+.bb-plugged {
+  fill: none;
+  stroke: #22c55e;
+  stroke-width: 1.3;
+  opacity: 0.9;
+}
+/* Holes the dragged part would plug into */
+.bb-preview {
+  fill: rgba(34, 197, 94, 0.3);
+  stroke: #16a34a;
+  stroke-width: 1.6;
+}
+/* Hole under the mouse */
+.bb-hover {
+  fill: rgba(56, 189, 248, 0.35);
+  stroke: #38bdf8;
+  stroke-width: 1;
+  rx: 1.5;
+}
+.running .bb-hover {
+  display: none;
+}
+
+/* Small parts only show their id while hovered or selected, to keep busy breadboards readable. */
+.part:not(.mcu):not(.carrier) .part-label {
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.part:not(.mcu):not(.carrier):hover .part-label,
+.part.selected .part-label {
+  opacity: 1;
+}

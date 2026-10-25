@@ -47,9 +47,21 @@ interface Instance {
   id: string;
   manifest?: PartManifest;
   model: PartModel;
+  /** No model hooks at all (breadboards, unknown parts): its pins never drive or listen. */
+  passive: boolean;
+}
+
+/** A pin whose part has a model: its voltage is tracked and reported on change. */
+interface ActivePin {
+  key: string;
+  net: number;
+  inst: Instance;
+  pin: string;
 }
 
 const key = (part: string, pin: string) => `${part}:${pin}`;
+
+const MODEL_HOOKS: Array<keyof PartModel> = ['drive', 'switches', 'resistors', 'onPinChange', 'onData', 'step', 'input', 'state'];
 
 const PRIO_STRONG = 4;
 const PRIO_RES_STRONG = 3;
@@ -68,6 +80,9 @@ export class Engine {
   private topoDirty = true;
   private pinNet = new Map<string, number>();
   private netPins: Array<Array<{ inst: Instance; pin: string }>> = [];
+  /** Per net, only the pins whose part implements drive(). */
+  private netDrivers: Array<Array<{ model: PartModel; pin: string }>> = [];
+  private activePins: ActivePin[] = [];
   private resEdges: Array<[number, number]> = [];
 
   // Solved state
@@ -103,10 +118,11 @@ export class Engine {
         const spec = type?.manifest.props?.[k];
         props[k] = spec?.type === 'number' ? Number(v) : spec?.type === 'boolean' ? v === 'true' || v === '1' : v;
       }
-      const inst: Instance = { id: p.id, manifest: type?.manifest, model: {} };
+      const inst: Instance = { id: p.id, manifest: type?.manifest, model: {}, passive: true };
       this.parts.set(p.id, inst);
       const ctx = this.makeContext(inst, props, firmware[p.id]);
       inst.model = type?.model ? type.model(ctx) : {};
+      inst.passive = !MODEL_HOOKS.some((h) => typeof inst.model[h] === 'function');
     }
 
     for (const [a, b] of diagram.connections) {
@@ -166,7 +182,11 @@ export class Engine {
 
   /** Voltage seen on a part's pin (used by tests and tools). */
   voltage(partId: string, pin: string): number | null {
-    return this.pinVolts.get(key(partId, pin)) ?? null;
+    const k = key(partId, pin);
+    if (this.pinVolts.has(k)) return this.pinVolts.get(k)!;
+    // Pins of passive parts (e.g. breadboard holes) are not tracked individually.
+    const n = this.parts.get(partId)?.passive ? this.pinNet.get(k) : undefined;
+    return n === undefined ? null : this.netVolts[n] ?? null;
   }
 
   // ───────────────────────────── internals ─────────────────────────────
@@ -229,21 +249,37 @@ export class Engine {
       }
     }
 
-    const rootIndex = new Map<string, number>();
-    this.pinNet.clear();
-    this.netPins = [];
+    // Group pins by net. Nets made only of passive pins (e.g. empty breadboard
+    // columns) can never carry a voltage nor notify anyone: leave them out, so an
+    // 830-hole breadboard costs nothing per solve.
+    const byRoot = new Map<string, Array<{ k: string; inst: Instance; pin: string }>>();
     for (const k of parent.keys()) {
-      const r = find(k);
-      let n = rootIndex.get(r);
-      if (n === undefined) {
-        n = this.netPins.length;
-        rootIndex.set(r, n);
-        this.netPins.push([]);
-      }
-      this.pinNet.set(k, n);
       const { part, pin } = splitEndpoint(k);
       const inst = this.parts.get(part);
-      if (inst) this.netPins[n].push({ inst, pin });
+      if (!inst) continue;
+      const r = find(k);
+      let list = byRoot.get(r);
+      if (!list) byRoot.set(r, (list = []));
+      list.push({ k, inst, pin });
+    }
+    this.pinNet.clear();
+    this.netPins = [];
+    this.netDrivers = [];
+    this.activePins = [];
+    for (const list of byRoot.values()) {
+      if (list.every((p) => p.inst.passive)) continue;
+      const n = this.netPins.length;
+      this.netPins.push(list.map(({ inst, pin }) => ({ inst, pin })));
+      this.netDrivers.push(list.filter((p) => p.inst.model.drive).map((p) => ({ model: p.inst.model, pin: p.pin })));
+      for (const p of list) this.pinNet.set(p.k, n);
+    }
+    // Same order as the pins were first seen, so parts are notified in a stable order.
+    for (const k of parent.keys()) {
+      const n = this.pinNet.get(k);
+      if (n === undefined) continue;
+      const { part, pin } = splitEndpoint(k);
+      const inst = this.parts.get(part)!;
+      if (!inst.passive) this.activePins.push({ key: k, net: n, inst, pin });
     }
     this.resEdges = resPairs
       .map(([a, b]) => [this.pinNet.get(a)!, this.pinNet.get(b)!] as [number, number])
@@ -263,8 +299,8 @@ export class Engine {
       let shorted = false;
       let wH = false;
       let wL = false;
-      for (const { inst, pin } of this.netPins[n]) {
-        const d = inst.model.drive?.(pin) ?? 'z';
+      for (const { model, pin } of this.netDrivers[n]) {
+        const d = model.drive!(pin);
         const v = d === 'high' ? VCC : d === 'low' ? 0 : typeof d === 'number' ? d : null;
         if (v !== null) {
           if (strong === null) strong = v;
@@ -322,15 +358,13 @@ export class Engine {
         if (this.topoDirty) this.rebuildTopology();
         this.computeVoltages();
         const changes: Array<{ inst: Instance; pin: string; level: Level }> = [];
-        for (const [k, n] of this.pinNet) {
-          const v = this.netVolts[n];
-          const old = this.pinVolts.get(k);
+        for (const p of this.activePins) {
+          const v = this.netVolts[p.net];
+          const old = this.pinVolts.get(p.key);
           const same = old === undefined ? false : old === null || v === null ? old === v : Math.abs(old - v) <= EPS;
           if (!same) {
-            this.pinVolts.set(k, v);
-            const { part, pin } = splitEndpoint(k);
-            const inst = this.parts.get(part);
-            if (inst) changes.push({ inst, pin, level: levelOf(v) });
+            this.pinVolts.set(p.key, v);
+            changes.push({ inst: p.inst, pin: p.pin, level: levelOf(v) });
           }
         }
         for (const c of changes) c.inst.model.onPinChange?.(c.pin, c.level);

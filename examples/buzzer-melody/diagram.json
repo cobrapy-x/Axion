@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    {
+      "type": "wokwi-arduino-uno",
+      "id": "uno",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "bz1",
+      "top": -150,
+      "left": 136,
+      "attrs": {}
+    }
+  ],
+  "connections": [
+    [
+      "uno:8",
+      "bz1:2",
+      "red",
+      []
+    ],
+    [
+      "bz1:1",
+      "uno:GND.1",
+      "black",
+      [
+        "v30"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}

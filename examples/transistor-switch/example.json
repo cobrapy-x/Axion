@@ -1,0 +1,7 @@
+{
+  "name": "Transistor switch",
+  "description": "An Arduino pin switches an LED through an NPN transistor (2N2222). The voltmeter shows the voltage across the LED.",
+  "sketches": {
+    "uno": "sketch.ino"
+  }
+}

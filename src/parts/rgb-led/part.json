@@ -1,0 +1,12 @@
+{
+  "type": "wokwi-rgb-led",
+  "name": "RGB LED",
+  "category": "Output",
+  "description": "Three LEDs (red, green, blue) in one package that share a common leg (COM). Mix colours by dimming each channel with analogWrite(). Common cathode: COM goes to GND and a HIGH channel lights. Common anode: COM goes to 5V and a LOW channel lights. Use a resistor on each colour leg.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "rgb",
+  "props": {
+    "common": { "type": "select", "label": "Common leg", "default": "anode", "options": ["anode", "cathode"] }
+  }
+}

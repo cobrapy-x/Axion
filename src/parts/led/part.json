@@ -11,7 +11,18 @@
       "type": "select",
       "label": "Color",
       "default": "red",
-      "options": ["red", "green", "blue", "yellow", "orange", "white", "purple"]
+      "options": [
+        "red",
+        "green",
+        "blue",
+        "yellow",
+        "orange",
+        "white",
+        "purple"
+      ]
     }
-  }
+  },
+  "tags": [
+    "basic"
+  ]
 }

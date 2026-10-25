@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    {
+      "type": "wokwi-arduino-uno",
+      "id": "uno",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "axion-npn",
+      "id": "q1",
+      "top": -160,
+      "left": 111,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rb",
+      "top": -45.65,
+      "left": 130.2,
+      "attrs": {
+        "value": "1000"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": -126,
+      "left": 185,
+      "attrs": {
+        "color": "red"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rl",
+      "top": -40.25,
+      "left": 270.6,
+      "attrs": {
+        "value": "220"
+      },
+      "rotate": 90
+    },
+    {
+      "type": "axion-voltmeter",
+      "id": "vm1",
+      "top": -298,
+      "left": 157,
+      "attrs": {}
+    }
+  ],
+  "connections": [
+    [
+      "uno:7",
+      "rb:2",
+      "orange",
+      []
+    ],
+    [
+      "rb:1",
+      "q1:B",
+      "orange",
+      []
+    ],
+    [
+      "q1:E",
+      "uno:GND.1",
+      "black",
+      [
+        "v60"
+      ]
+    ],
+    [
+      "q1:C",
+      "led1:C",
+      "gray",
+      [
+        "v10"
+      ]
+    ],
+    [
+      "led1:A",
+      "rl:1",
+      "red",
+      [
+        "v20"
+      ]
+    ],
+    [
+      "uno:5V",
+      "rl:2",
+      "red",
+      [
+        "v25"
+      ]
+    ],
+    [
+      "vm1:COM",
+      "led1:C",
+      "black",
+      [
+        "v8",
+        "h-22.6",
+        "v68"
+      ]
+    ],
+    [
+      "vm1:V",
+      "led1:A",
+      "red",
+      [
+        "v8",
+        "h22.6",
+        "v68"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}

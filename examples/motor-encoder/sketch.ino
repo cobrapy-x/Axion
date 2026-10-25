@@ -1,6 +1,6 @@
 // Axion example: encoder motor speed control through an L298N
 //  - Potentiometer on A0: centre = stop, right = forward, left = reverse
-//  - L298N channel B: ENB (PWM speed) on 5, IN3 on 7, IN4 on 6, powered by a 12 V battery
+//  - L298N channel B: ENB (PWM speed) on 5, IN3 on 7, IN4 on 6, powered by a 9 V battery
 //  - Encoder A on pin 3 (INT1), B on pin 2 (INT0)
 // The serial monitor shows the commanded speed, measured RPM and shaft position.
 

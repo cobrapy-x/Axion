@@ -39,6 +39,10 @@ export interface PropSpec {
   label?: string;
   default: string | number | boolean;
   options?: string[];
+  /** Number props with min and max are edited with a −/+ stepper in the inspector. */
+  min?: number;
+  max?: number;
+  step?: number;
 }
 
 export interface McuSpec {
@@ -68,6 +72,21 @@ export interface PartManifest {
   interactive?: boolean;
   /** Prefix used when auto-generating ids, e.g. "led" → led1, led2… */
   idPrefix?: string;
+  /**
+   * Free-form tags used by the component panel. "basic" puts the part in the
+   * default "Basic" list (the parts a beginner needs first).
+   */
+  tags?: string[];
+  /**
+   * Breadboards and similar carriers: parts dropped on top snap to their holes and
+   * are connected automatically. Drawn underneath other parts.
+   */
+  carrier?: boolean;
+  /**
+   * Kept so older projects still open, but not offered in the components panel
+   * (e.g. replaced by a better part).
+   */
+  hidden?: boolean;
 }
 
 // ─────────────────────────────── Model (worker) ─────────────────────────

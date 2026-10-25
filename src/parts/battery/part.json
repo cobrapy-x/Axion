@@ -2,11 +2,16 @@
   "type": "axion-battery",
   "name": "Battery",
   "category": "Power",
-  "description": "DC power source (battery pack or bench supply). Connect '-' to the circuit's GND.",
+  "description": "Adjustable DC source kept so older projects still open. For new circuits use the 9V battery, AA battery (set the number of cells) or coin cell.",
   "version": "1.0.0",
   "license": "Apache-2.0",
   "idPrefix": "bat",
   "props": {
-    "voltage": { "type": "number", "label": "Voltage (V)", "default": 9 }
-  }
+    "voltage": {
+      "type": "number",
+      "label": "Voltage (V)",
+      "default": 9
+    }
+  },
+  "hidden": true
 }

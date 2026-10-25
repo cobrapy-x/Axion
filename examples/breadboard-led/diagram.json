@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    { "type": "wokwi-breadboard-half", "id": "bb1", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-arduino-uno", "id": "uno", "top": 270, "left": 73.7, "attrs": {} },
+    { "type": "wokwi-led", "id": "led1", "top": 76.2, "left": 116.6, "attrs": { "color": "red" } },
+    { "type": "wokwi-resistor", "id": "r1", "top": 131.75, "left": 141.2, "attrs": { "value": "220" } },
+    { "type": "wokwi-pushbutton", "id": "btn1", "top": 79.7, "left": 221.5, "rotate": 90, "attrs": { "color": "blue" } }
+  ],
+  "connections": [
+    ["uno:GND.1", "bb1:bn.15", "black", []],
+    ["uno:5V", "bb1:bp.1", "red", ["v15", "h-243.7", "v-291.1"]],
+    ["uno:13", "bb1:19b.j", "orange", []],
+    ["uno:2", "bb1:26b.j", "blue", ["v-49", "h-44.2"]],
+    ["bb1:12b.j", "bb1:bn.10", "black", []],
+    ["bb1:24b.j", "bb1:bn.20", "black", []],
+    ["led1:A", "bb1:13b.f", "", ["$bb"]],
+    ["led1:C", "bb1:12b.f", "", ["$bb"]],
+    ["r1:1", "bb1:13b.h", "", ["$bb"]],
+    ["r1:2", "bb1:19b.h", "", ["$bb"]],
+    ["btn1:1.l", "bb1:26t.c", "", ["$bb"]],
+    ["btn1:2.l", "bb1:24t.c", "", ["$bb"]],
+    ["btn1:1.r", "bb1:26b.h", "", ["$bb"]],
+    ["btn1:2.r", "bb1:24b.h", "", ["$bb"]]
+  ],
+  "dependencies": {}
+}

@@ -1,0 +1,10 @@
+{
+  "type": "axion-voltmeter",
+  "name": "Voltmeter (multimeter)",
+  "category": "Instruments",
+  "description": "Measures the voltage between its red probe (V) and its black probe (COM) while the simulation runs. Shows '--' when a probe is not connected to anything that sets a voltage. It does not change the circuit.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "vm",
+  "tags": ["basic"]
+}

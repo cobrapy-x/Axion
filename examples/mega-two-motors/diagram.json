@@ -22,22 +22,26 @@
       "id": "right",
       "top": -420,
       "left": 330,
-      "attrs": {}
+      "attrs": {
+        "ratedVoltage": "9"
+      }
     },
     {
       "type": "axion-encoder-motor",
       "id": "left",
       "top": -440,
       "left": -30,
-      "attrs": {}
+      "attrs": {
+        "ratedVoltage": "9"
+      }
     },
     {
-      "type": "axion-battery",
+      "type": "axion-battery-9v",
       "id": "bat1",
       "top": -130,
-      "left": -160,
+      "left": -162.4,
       "attrs": {
-        "voltage": "12"
+        "count": "1"
       }
     }
   ],

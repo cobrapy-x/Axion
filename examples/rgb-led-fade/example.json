@@ -1,0 +1,7 @@
+{
+  "name": "RGB LED colour fade",
+  "description": "A common-cathode RGB LED fades red → green → blue → red. analogWrite() on three PWM pins mixes the colours.",
+  "sketches": {
+    "uno": "sketch.ino"
+  }
+}

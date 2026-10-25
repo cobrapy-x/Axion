@@ -1,5 +1,5 @@
 // Axion example: Arduino Mega driving two encoder motors (a little robot base)
-//  - L298N: ENA on 11, ENB on 6 (PWM), IN1..IN4 on 10, 9, 8, 7, 12 V battery
+//  - L298N: ENA on 11, ENB on 6 (PWM), IN1..IN4 on 10, 9, 8, 7, 9 V battery
 //  - Left encoder  A/B on 3/2   (external interrupts INT5/INT4)
 //  - Right encoder A/B on 18/19 (external interrupts INT3/INT2)
 // The robot drives forward, turns on the spot, then stops, and repeats.

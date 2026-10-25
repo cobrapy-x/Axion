@@ -1,0 +1,15 @@
+{
+  "type": "wokwi-7segment",
+  "name": "7-segment display",
+  "category": "Output",
+  "description": "Shows digits with seven LED segments (A to G) plus a decimal point (DP). Common cathode: COM goes to GND and a HIGH segment pin lights. Common anode: COM goes to 5V and a LOW segment pin lights. Put a resistor in series with each segment. Multi-digit displays have one common pin per digit (DIG1, DIG2…) for multiplexing.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "sevseg",
+  "internal": [["COM.1", "COM.2"]],
+  "props": {
+    "common": { "type": "select", "label": "Common pin", "default": "anode", "options": ["anode", "cathode"] },
+    "digits": { "type": "select", "label": "Digits", "default": "1", "options": ["1", "2", "3", "4"] },
+    "color": { "type": "select", "label": "Colour", "default": "red", "options": ["red", "green", "blue", "yellow", "white"] }
+  }
+}

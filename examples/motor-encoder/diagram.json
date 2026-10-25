@@ -22,21 +22,23 @@
       "id": "motor1",
       "top": -260,
       "left": 280,
-      "attrs": {}
+      "attrs": {
+        "ratedVoltage": "9"
+      }
     },
     {
-      "type": "axion-battery",
+      "type": "axion-battery-9v",
       "id": "bat1",
       "top": 0,
-      "left": -110,
+      "left": -112.4,
       "attrs": {
-        "voltage": "12"
+        "count": "1"
       }
     },
     {
       "type": "wokwi-potentiometer",
       "id": "pot1",
-      "top": 140,
+      "top": 160,
       "left": -130,
       "attrs": {
         "value": "850"
