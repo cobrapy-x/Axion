@@ -1,39 +1,29 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { ModelFactory } from '../../core/types';
+import { DutyMeter } from '../../physics/duty';
+import { LedGuard, ledElement } from '../../physics/lamp';
 
 /**
- * An LED is lit when its anode (A) is at least 1.5 V above its cathode (C).
- * Brightness = fraction of time it was lit since the last frame, so
- * analogWrite() / PWM dims it smoothly.
+ * An LED (D element from A to C) with a forward voltage set by its colour.
+ * Brightness follows the current (full at 20 mA), averaged per frame so
+ * analogWrite() / PWM dims it smoothly. Warns when there is no current-limiting resistor.
  */
 const create: ModelFactory = (ctx) => {
-  let lit = false;
-  let since = ctx.now();
-  let windowStart = since;
-  let onTime = 0;
-
-  const isLit = () => {
-    const a = ctx.voltage('A');
-    const c = ctx.voltage('C');
-    return a !== null && c !== null && a - c >= 1.5;
+  const els = [ledElement('A', 'C', ctx.props.color, 'd')];
+  const duty = new DutyMeter(1, ctx.now());
+  const guard = new LedGuard(ctx);
+  const level = [0];
+  const update = () => {
+    level[0] = guard.level('d', `LED ${ctx.id}`);
+    duty.set(level, ctx.now());
   };
 
   return {
-    onPinChange() {
-      const now = ctx.now();
-      if (lit) onTime += Math.max(0, now - since);
-      since = now;
-      lit = isLit();
-    },
+    elements: () => els,
+    onPinChange: update,
     state() {
-      const now = ctx.now();
-      if (lit) onTime += Math.max(0, now - since);
-      since = now;
-      const span = now - windowStart;
-      const brightness = span > 0 ? Math.min(1, onTime / span) : lit ? 1 : 0;
-      windowStart = now;
-      onTime = 0;
-      return { brightness: Math.round(brightness * 100) / 100 };
+      update();
+      return { brightness: duty.read(ctx.now())[0] };
     },
   };
 };

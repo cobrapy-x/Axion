@@ -1,0 +1,5 @@
+{
+  "name": "Zener regulator",
+  "description": "A 5.1 V zener diode and a 470 Ω resistor turn a 9 V battery into a steady 5.1 V. The voltmeter shows it and the Uno measures it through a divider.",
+  "sketches": { "uno": "sketch.ino" }
+}

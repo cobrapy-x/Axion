@@ -20,5 +20,7 @@ export default avrBoard({
     'GND.3': 0,
     RESET: 'pullup',
   },
+  i2c: { sda: 'A4', scl: 'A5' },
+  spi: { mosi: '11', miso: '12', sck: '13' }, // the ICSP pins (11.2 …) join these through part.json `internal`
   adc: ['A0', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7'],
 });

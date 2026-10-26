@@ -1,34 +1,27 @@
 // SPDX-License-Identifier: Apache-2.0
-import type { ModelFactory } from '../core/types';
+import type { AnalogElement, ModelFactory } from '../core/types';
 
-/** Base-emitter voltage that turns a silicon transistor on. */
-export const VBE_ON = 0.6;
+/** Base-emitter voltage of a conducting silicon transistor (the solver's BJT model). */
+export const VBE_ON = 0.65;
+
+/** Collector current above which the transistor is shown as conducting. */
+const ON_AMPS = 1e-6;
 
 /**
- * Switching model of a bipolar transistor (no gain, no linear region):
- * collector and emitter are joined while the base-emitter junction is forward
- * biased by ≥ 0.6 V. NPN: V(B) − V(E); PNP: V(E) − V(B).
- * Works for the usual low-side (NPN, emitter to GND) and high-side (PNP, emitter
- * to the supply) switches.
+ * Bipolar transistor as a BJT element (see docs/SOLVER.md): cutoff below VBE ≈ 0.65 V,
+ * active region with IC = β·IB, saturation at VCE ≈ 0.2 V. Works as a low-side (NPN,
+ * emitter to GND) or high-side (PNP, emitter to the supply) switch and as an amplifier.
+ * State: `on` (collector current flows), `ic` (collector current in mA).
  */
-export function bjtSwitch(kind: 'npn' | 'pnp'): ModelFactory {
+export function bjtModel(kind: 'npn' | 'pnp', beta: number): ModelFactory {
   return (ctx) => {
-    let on = false;
-    const conducting = () => {
-      const b = ctx.voltage('B');
-      const e = ctx.voltage('E');
-      if (b === null || e === null) return false;
-      return (kind === 'npn' ? b - e : e - b) >= VBE_ON;
-    };
+    const els: AnalogElement[] = [{ kind: 'BJT', type: kind, b: 'B', c: 'C', e: 'E', beta, id: 'q' }];
     return {
-      switches: () => (on ? [['C', 'E']] : []),
-      onPinChange() {
-        const next = conducting();
-        if (next === on) return;
-        on = next;
-        ctx.invalidate(true); // connectivity changed
+      elements: () => els,
+      state() {
+        const ic = Math.abs(ctx.current('q'));
+        return { on: ic > ON_AMPS, ic: Math.round(ic * 1e4) / 10 };
       },
-      state: () => ({ on }),
     };
   };
 }

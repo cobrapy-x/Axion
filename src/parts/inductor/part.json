@@ -1,0 +1,14 @@
+{
+  "type": "axion-inductor",
+  "name": "Inductor (choke)",
+  "category": "Passive",
+  "description": "A coil of wire. Its current cannot change suddenly: it grows slowly when a voltage is applied (time constant L / R) and keeps flowing when the circuit is opened, which makes a high voltage spike. Put a diode across a coil (motor, relay) to absorb it. Modelled as the inductance in series with the resistance of its wire.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "l",
+  "props": {
+    "inductance": { "type": "string", "label": "Inductance", "default": "10mH", "unit": "H" },
+    "resistance": { "type": "string", "label": "Wire resistance", "default": "1Ω", "unit": "Ω" }
+  },
+  "tags": ["inductor", "coil", "choke"]
+}

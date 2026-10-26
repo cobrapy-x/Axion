@@ -1,0 +1,5 @@
+{
+  "name": "LCD 16×2 (I²C): Hello",
+  "description": "A 16×2 LCD on the I²C bus (SDA = A4, SCL = A5) shows a greeting, a custom heart character and the seconds since start. Uses only Wire.",
+  "sketches": { "uno": "sketch.ino" }
+}

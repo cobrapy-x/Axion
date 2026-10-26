@@ -1,0 +1,10 @@
+{
+  "type": "axion-pmos",
+  "name": "P-channel MOSFET",
+  "category": "Semiconductors",
+  "description": "A small P-channel MOSFET for switching the positive side of a load (a high-side switch): put the source (S) on the supply and the load between the drain (D) and GND. It turns on when the gate (G) is more than about 2 V below the source, so a LOW pin switches it on and HIGH (with S at 5 V) off. Add a pull-up from G to S. Up to 200 mA, about 5 Ω when on.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "q",
+  "tags": ["mosfet", "transistor", "p-channel", "high-side", "switch"]
+}

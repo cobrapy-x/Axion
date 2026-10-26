@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    {
+      "type": "wokwi-arduino-mega",
+      "id": "mega",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd1",
+      "top": -150,
+      "left": 420,
+      "attrs": {
+        "pins": "i2c"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "lcd1:GND",
+      "mega:GND.1",
+      "black",
+      [
+        "h-305"
+      ]
+    ],
+    [
+      "lcd1:VCC",
+      "mega:5V.1",
+      "red",
+      [
+        "h-63"
+      ]
+    ],
+    [
+      "lcd1:SDA",
+      "mega:20",
+      "blue",
+      [
+        "h-96"
+      ]
+    ],
+    [
+      "lcd1:SCL",
+      "mega:21",
+      "purple",
+      [
+        "h-86.5"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}

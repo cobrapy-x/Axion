@@ -9,6 +9,8 @@ import {
   ADCReference,
   AVRADC,
   AVRIOPort,
+  AVRSPI,
+  AVRTWI,
   AVRTimer,
   AVRUSART,
   CPU,
@@ -26,12 +28,23 @@ import {
   portJConfig,
   portKConfig,
   portLConfig,
+  spiConfig,
   timer0Config,
   timer1Config,
   timer2Config,
+  twiConfig,
   usart0Config,
 } from 'avr8js';
-import type { ADCConfig, ADCMuxConfiguration, AVRExternalInterrupt, AVRPinChangeInterrupt, AVRPortConfig, AVRTimerConfig } from 'avr8js';
+import type {
+  ADCConfig,
+  ADCMuxConfiguration,
+  AVRExternalInterrupt,
+  AVRPinChangeInterrupt,
+  AVRPortConfig,
+  AVRTimerConfig,
+  SPIConfig,
+  TWIConfig,
+} from 'avr8js';
 import { loadHex } from './intelhex';
 
 export { PinState };
@@ -45,6 +58,9 @@ export interface AvrChip {
   timers: AVRTimerConfig[];
   usart: typeof usart0Config;
   adc: ADCConfig;
+  /** Two-wire interface (I²C). */
+  twi: TWIConfig;
+  spi: SPIConfig;
 }
 
 // ───────────────────────────── ATmega328P (Uno, Nano) ─────────────────────────────
@@ -57,6 +73,8 @@ export const ATMEGA328P: AvrChip = {
   timers: [timer0Config, timer1Config, timer2Config],
   usart: usart0Config,
   adc: adcConfig,
+  twi: twiConfig, // TWI_vect = 24
+  spi: spiConfig, // SPI_STC_vect = 17
 };
 
 // ───────────────────────────── ATmega2560 (Mega) ─────────────────────────────
@@ -180,6 +198,9 @@ export const ATMEGA2560: AvrChip = {
     muxChannels: megaAdcChannels,
     adcReferences: [ADCReference.AREF, ADCReference.AVCC, ADCReference.Internal1V1, ADCReference.Internal2V56],
   },
+  // Same registers as the 328P (TWBR 0xB8 … TWAMR 0xBD, SPCR 0x4C … SPDR 0x4E); only the vectors move.
+  twi: { ...twiConfig, twiInterrupt: vec(39) },
+  spi: { ...spiConfig, spiInterrupt: vec(24) },
 };
 
 // ───────────────────────────── runtime ─────────────────────────────
@@ -191,6 +212,8 @@ export class AvrMcu {
   readonly usart: AVRUSART;
   readonly adc: AVRADC;
   readonly timers: AVRTimer[];
+  readonly twi: AVRTWI;
+  readonly spi: AVRSPI;
 
   constructor(readonly chip: AvrChip, hex: string) {
     const flash = new Uint8Array(chip.flashBytes);
@@ -200,6 +223,8 @@ export class AvrMcu {
     for (const [name, cfg] of Object.entries(chip.ports)) this.ports[name] = new AVRIOPort(this.cpu, cfg);
     this.usart = new AVRUSART(this.cpu, chip.usart, this.frequency);
     this.adc = new AVRADC(this.cpu, chip.adc);
+    this.twi = new AVRTWI(this.cpu, chip.twi, this.frequency);
+    this.spi = new AVRSPI(this.cpu, chip.spi, this.frequency);
   }
 
   /** Simulated time of this CPU in nanoseconds. */

@@ -1,0 +1,14 @@
+{
+  "type": "wokwi-dip-switch-8",
+  "name": "DIP switch (8)",
+  "category": "Input",
+  "description": "Eight tiny on/off switches in one package. Switch 1 connects pin 1a to pin 1b when it is ON (pushed up toward the ON label), switch 2 connects 2a to 2b, and so on. Wire one side to GND and the other side to Arduino pins with INPUT_PULLUP: an ON switch reads LOW. Click a switch to flip it, even while the simulation runs.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "sw",
+  "interactive": true,
+  "props": {
+    "value": { "type": "string", "label": "Start positions (switch 1…8, 1 = ON)", "default": "00000000" }
+  },
+  "tags": ["basic", "switch", "dip", "binary"]
+}

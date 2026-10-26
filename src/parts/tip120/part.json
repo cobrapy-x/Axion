@@ -1,0 +1,10 @@
+{
+  "type": "axion-tip120",
+  "name": "Darlington transistor (TIP120)",
+  "category": "Semiconductors",
+  "description": "Two NPN transistors in one TO-220 package (a Darlington pair): a tiny base current switches a big load, with a gain of about 1000. Feed the base (B) from an Arduino pin through 1kΩ, connect the emitter (E) to GND and the load (motor, lamp, solenoid) between the supply and the collector (C). It needs about 1.4 V between B and E and drops about 0.9 V when fully on. It has a built-in protection diode from E to C, but add a flyback diode across a motor anyway.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "q",
+  "tags": ["transistor", "darlington", "tip120", "npn", "motor", "switch"]
+}

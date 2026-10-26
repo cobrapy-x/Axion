@@ -1,0 +1,5 @@
+{
+  "name": "Arduino Mega + LCD 16×2 (I²C)",
+  "description": "The Mega's I²C bus is on pins 20 (SDA) and 21 (SCL). A 16×2 LCD shows a counter. Uses only Wire.",
+  "sketches": { "mega": "sketch.ino" }
+}

@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
-import type { ModelFactory } from '../../core/types';
+import { parseValue } from '../../core/analog/units';
+import type { AnalogElement, ModelFactory } from '../../core/types';
 
-/** DC model: a capacitor blocks steady current, so it connects nothing. Charging is not simulated yet. */
-const create: ModelFactory = () => ({});
+/** A capacitor between pins 1 and 2: "100nF", "10µF", "4.7uF". Charges and discharges in time. */
+const create: ModelFactory = (ctx) => {
+  const farads = Math.max(0, parseValue(ctx.props.capacitance, 100e-9));
+  const els: AnalogElement[] = [{ kind: 'C', a: '1', b: '2', farads, id: 'c' }];
+  return { elements: () => els };
+};
 
 export default create;

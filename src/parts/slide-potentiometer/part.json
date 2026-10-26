@@ -1,0 +1,15 @@
+{
+  "type": "wokwi-slide-potentiometer",
+  "name": "Slide potentiometer",
+  "category": "Input",
+  "description": "A potentiometer with a straight slider, like the faders on a mixing desk. Two resistors VCC–SIG and SIG–GND add up to its resistance: SIG gives 0 V with the slider on the left and VCC on the right. Drag the slider while the simulation runs and read SIG with analogRead().",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "pot",
+  "interactive": true,
+  "props": {
+    "value": { "type": "number", "label": "Position (0-100)", "default": 0 },
+    "resistance": { "type": "string", "label": "Resistance", "default": "10k", "unit": "Ω" }
+  },
+  "tags": ["potentiometer", "slider", "fader", "variable resistor"]
+}

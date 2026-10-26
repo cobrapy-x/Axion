@@ -1,0 +1,15 @@
+{
+  "type": "axion-photoresistor",
+  "name": "Photoresistor (LDR)",
+  "category": "Sensors",
+  "description": "A light-dependent resistor (GL5528): about 10 kΩ at 10 lux (a dim room), a few hundred ohms in bright light and about 1 MΩ in the dark. It has no polarity. Make a voltage divider with a 10kΩ resistor and read the middle with analogRead(). Select it and drag the Light slider while the simulation runs (0 = dark, 300 = indoor light, 1000 = overcast daylight).",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "ldr",
+  "props": {
+    "lux": { "type": "number", "label": "Light", "default": 100, "min": 0, "max": 1000, "step": 1, "unit": "lux", "live": true },
+    "rl10": { "type": "string", "label": "Resistance at 10 lux", "default": "10k", "unit": "Ω" },
+    "gamma": { "type": "number", "label": "Gamma (slope)", "default": 0.7 }
+  },
+  "tags": ["ldr", "photoresistor", "light", "sensor", "gl5528"]
+}

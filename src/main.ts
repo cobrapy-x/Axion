@@ -116,6 +116,8 @@ const confirmDiscard = () => project.diagram.parts.length === 0 || confirm('Repl
 
 const runBtn = $<HTMLButtonElement>('btn-run');
 const simStatus = $('sim-status');
+/** Threads running microcontrollers in parallel (multi-core with 2+ boards, see docs/MULTICORE.md). */
+let simCores = 1;
 
 /** Enable / disable toolbar buttons from the workspace state. */
 function updateToolbar() {
@@ -421,6 +423,22 @@ function renderInspector(sel: Selection) {
     box.append(el('div', { className: 'insp-head' }, el('h4', {}, el('span', {}, part.id), el('small', {}, m?.name ?? part.type)), close));
     const props = propsOf(part, ui);
     for (const [key, spec] of Object.entries(m?.props ?? {})) {
+      const unit = spec.unit ? ` ${spec.unit}` : '';
+      if (spec.live && spec.type === 'number' && spec.min !== undefined && spec.max !== undefined) {
+        // Live slider: works while the simulation runs (sensor distance, light level…)
+        const value = Number(props[key]);
+        const range = el('input', { type: 'range', min: String(spec.min), max: String(spec.max), step: String(spec.step ?? 1) });
+        range.value = String(value);
+        range.setAttribute('aria-label', spec.label ?? key);
+        const out = el('output', { className: 'live-value', textContent: `${value}${unit}` });
+        range.oninput = () => {
+          out.textContent = `${range.value}${unit}`;
+          if (workspace.running) sim.input(part.id, 'prop', { key, value: Number(range.value) });
+        };
+        range.onchange = () => workspace.setPartAttr(part.id, key, range.value);
+        box.append(el('div', { className: 'live-field' }, el('div', { className: 'field' }, el('span', {}, spec.label ?? key), out), range));
+        continue;
+      }
       if (spec.type === 'number' && spec.min !== undefined && spec.max !== undefined) {
         // −/+ stepper, e.g. number of batteries in series
         const value = Number(props[key]);
@@ -438,14 +456,20 @@ function renderInspector(sel: Selection) {
         continue;
       }
       let input: HTMLInputElement | HTMLSelectElement;
+      const off = disabled && !spec.live;
       if (spec.type === 'select') {
-        input = el('select', { disabled });
+        input = el('select', { disabled: off });
         for (const opt of spec.options ?? []) input.append(el('option', { value: opt, textContent: opt }));
       } else {
-        input = el('input', { type: spec.type === 'number' ? 'number' : 'text', disabled });
+        input = el('input', { type: spec.type === 'number' ? 'number' : 'text', disabled: off });
       }
       input.value = String(props[key]);
-      input.onchange = () => workspace.setPartAttr(part.id, key, input.value);
+      input.onchange = () => {
+        workspace.setPartAttr(part.id, key, input.value);
+        if (spec.live && workspace.running) {
+          sim.input(part.id, 'prop', { key, value: spec.type === 'number' ? Number(input.value) : input.value });
+        }
+      };
       box.append(el('label', {}, el('span', {}, spec.label ?? key), input));
     }
     if (m?.description) box.append(el('p', {}, m.description));
@@ -638,6 +662,7 @@ async function run() {
     workspace.setRunning(true);
     renderInspector(workspace.selection);
     // Simulate the drawn wires plus implicit connections (e.g. parts plugged into a breadboard).
+    simCores = 1;
     sim.start({ ...structuredClone(project.diagram), connections: workspace.connectionsForSimulation() }, firmware);
     simStatus.textContent = 'Running';
     document.body.classList.add('sim-running');
@@ -653,6 +678,7 @@ function stop() {
   workspace.setRunning(false);
   renderInspector(workspace.selection);
   simStatus.textContent = 'Stopped';
+  simStatus.removeAttribute('title');
   document.body.classList.remove('sim-running');
   updateRunButton();
   updateToolbar();
@@ -674,7 +700,14 @@ sim.onSnapshot = (snap, speed) => {
       toast(w, true);
     }
   }
-  simStatus.textContent = `${(snap.timeNs / 1e9).toFixed(2)} s · ${Math.round(speed * 100)}% speed`;
+  simStatus.textContent = `${(snap.timeNs / 1e9).toFixed(2)} s · ${Math.round(speed * 100)}% speed · ${simCores} ${simCores === 1 ? 'core' : 'cores'}`;
+};
+sim.onStarted = (cores) => {
+  simCores = cores;
+  simStatus.title =
+    cores > 1
+      ? `Microcontrollers run in parallel on ${cores} CPU cores.`
+      : 'The simulation runs on one CPU core (one microcontroller, or multi-core not available in this browser).';
 };
 sim.onError = (msg) => {
   stop();

@@ -1,0 +1,15 @@
+{
+  "type": "axion-gate-not",
+  "name": "NOT gate (inverter)",
+  "category": "Logic",
+  "description": "Y is always the opposite of A. Like a real 74HC chip it only works when VCC (2–6 V) and GND are connected, and its output follows the supply voltage. Never leave an input unconnected: a floating input makes the output unpredictable, so the simulator stops driving Y and shows a \"?\" on that input.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "gate",
+  "tags": [
+    "logic",
+    "gate",
+    "digital",
+    "not"
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "name": "74HC595 shift register: Knight Rider (SPI)",
+  "description": "Same circuit as the shiftOut() example, driven by the hardware SPI port: SPI.transfer() sends the whole byte at once (MOSI → DS, SCK → SHCP).",
+  "sketches": { "uno": "sketch.ino" }
+}

@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    { "type": "wokwi-arduino-uno", "id": "uno", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-resistor", "id": "r1", "top": -60, "left": 190, "attrs": { "value": "10k" } },
+    { "type": "axion-capacitor-electrolytic", "id": "c1", "top": -110, "left": 300, "attrs": { "capacitance": "100µF" } },
+    { "type": "axion-voltmeter", "id": "vm1", "top": -250, "left": 280, "attrs": {} }
+  ],
+  "connections": [
+    ["uno:8", "r1:1", "orange", ["v-20"]],
+    ["r1:2", "c1:+", "orange", []],
+    ["c1:-", "uno:GND.1", "black", ["v20", "h-200"]],
+    ["c1:+", "uno:A0", "green", ["h40", "v260", "h-120"]],
+    ["vm1:V", "c1:+", "red", []],
+    ["vm1:COM", "c1:-", "black", []]
+  ],
+  "dependencies": {}
+}

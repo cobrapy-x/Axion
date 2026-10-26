@@ -5,12 +5,13 @@
 Wire up Arduinos, LEDs, buttons and more, write your sketch, and run it on your own computer. You don't need an internet connection, don't wait in a compile queue, and don't need an account.
 
 - **Offline and fast.** Sketches compile locally with arduino-cli, and builds are cached, so re-running an unchanged sketch is instant.
-- **Lightweight.** The whole app is under 500 KB (about 130 KB gzipped). The simulation runs in a background thread so the UI stays smooth.
-- **Multiple microcontrollers.** Several boards run together in lock-step and can talk to each other over wires (UART today).
+- **Lightweight.** The whole app is under 1 MB (about 260 KB gzipped). The simulation runs in a background thread so the UI stays smooth.
+- **Real circuits, not just logic.** An analog solver handles voltage dividers, RC and RL timing, diodes, zeners, transistors and MOSFETs, and warns about missing resistors and short circuits ([how it works](docs/SOLVER.md)).
+- **Multiple microcontrollers, multiple cores.** Several boards run together in lock-step and talk over UART, I²C and SPI. With two or more boards, each group of MCUs runs on its own CPU core ([details](docs/MULTICORE.md)).
 - **Modular parts.** Each part is one folder: `part.json` + `model.ts` (behaviour) + `view.ts` (animation). Drop a folder in and it appears in the palette.
 - **No lock-in.** Axion reads and writes Wokwi-compatible `diagram.json` files.
 
-> Status: early (v0.3). See the [roadmap](docs/ARCHITECTURE.md#roadmap).
+> Status: early (v0.4). See the [changelog](CHANGELOG.md) and the [roadmap](docs/ARCHITECTURE.md#roadmap).
 
 ## Parts
 
@@ -19,14 +20,24 @@ Wire up Arduinos, LEDs, buttons and more, write your sketch, and run it on your 
 | Prototyping | Breadboard (full 830, half 400, mini 170): parts plugged in connect automatically |
 | Microcontrollers | Arduino Uno, Arduino Nano, Arduino Mega 2560 |
 | Actuators | DC motor, DC motor with quadrature encoder, L298N motor driver, servo (SG90) |
-| Input | Pushbutton, slide switch, potentiometer |
-| Output | LED (PWM brightness), RGB LED, 7-segment display, piezo buzzer (with sound) |
-| Passive | Resistor, ceramic and electrolytic capacitors |
-| Semiconductors | NPN (2N2222) and PNP (2N2907) transistors (switching model) |
+| Input | Pushbutton, slide switch, 8-way DIP switch, 4×4 membrane keypad, potentiometer, slide potentiometer, trimmer potentiometer |
+| Output | LED (PWM brightness), RGB LED, 7-segment display, 16×2 LCD (I²C backpack or parallel 4-bit), piezo buzzer (with sound) |
+| Sensors | HC-SR04 ultrasonic distance sensor, photoresistor (LDR) and LDR module: distance and light level are live sliders |
+| Logic | AND, OR, NAND, NOR, XOR, XNOR and NOT gates, 74HC595 shift register |
+| Switches and relays | 5 V relay module |
+| Passive | Resistor, ceramic and electrolytic capacitors, inductor, rheostat (variable resistor) |
+| Semiconductors | Diodes (1N4148, 1N4007, 1N5819 Schottky, zener), NPN (2N2222), PNP (2N2907) and Darlington (TIP120) transistors, MOSFETs (2N7000, IRLZ44N, P-channel) |
 | Power | 9 V battery, AA cells, CR2032 coin cell: select one and use the **−/+ stepper** (or the + / − keys) to put several in series |
 | Instruments | Voltmeter |
 
-Examples: blink and button, LED and button on a breadboard, two Unos over serial, servo and potentiometer, encoder motor speed control, Mega driving two encoder motors, RGB LED fade, buzzer melody, 7-segment counter, transistor switch.
+27 examples (**File → Examples**), all with prebuilt firmware:
+
+- **Basics:** blink and button, LED on a breadboard, RGB LED fade, buzzer melody, 7-segment counter, DIP switch binary readout, trimpot LED dimmer
+- **Analog:** voltage divider, RC charging, RL circuit, zener regulator, light-activated night light (LDR)
+- **Transistors and power:** transistor switch, MOSFET motor driver, relay blink
+- **Buses:** LCD hello (I²C), LCD potentiometer meter, Mega with an I²C LCD, keypad door lock, shift register LEDs (`shiftOut` and hardware SPI), logic gates
+- **Motors and sensors:** servo and potentiometer, encoder motor speed control, Mega driving two encoder motors, ultrasonic distance meter
+- **Multiple boards:** two Unos over serial
 
 ## Getting started
 
@@ -50,7 +61,7 @@ To compile your own sketches, install **arduino-cli** once:
 Then run:
 
 ```sh
-npm run setup   # downloads the Arduino AVR core and the Servo library once; offline after that
+npm run setup   # downloads the Arduino AVR core, Servo and LCD libraries once; offline after that
 ```
 
 The toolbar shows **Compiler: ready** when everything is in place.
@@ -71,28 +82,28 @@ Other commands:
 | Pan and zoom | Drag the background · scroll wheel · **Fit** button |
 | Code | **Code** opens the editor: one tab per microcontroller, compiler output and the serial monitor |
 | Run | **Start Simulation** (or F5 / Ctrl+Enter) |
-| Interact | While running, press buttons, flip slide switches and drag potentiometer knobs |
+| Interact | While running, press buttons and keypad keys, flip slide and DIP switches, and drag potentiometer knobs. Select a sensor, LDR or rheostat to move its slider in the inspector live |
 | Prebuilt firmware | **Load .hex** runs any Intel HEX file on the selected board |
 | Files | **File** menu: New, Open, Save, Export, Examples. **Save** writes an `.axion.json` project (circuit + code). **Export diagram** writes a Wokwi-compatible `diagram.json` |
 
 ## Project layout
 
 ```
-src/core/      engine (nets, solver, time), part contract, diagram format
-src/mcu/       microcontroller chips and the shared Arduino board model (on avr8js)
+src/core/      engine (nets, time), part contract, diagram format
+src/core/analog/  the MNA circuit solver (R, C, L, diodes, BJTs, MOSFETs)
+src/mcu/       chip-independent MCU runtime, AVR family (avr8js), board model, I²C/SPI buses
 src/physics/   shared helpers (motor dynamics, PWM duty, frequency, part drawings)
 src/parts/     one folder per part, auto-discovered
-src/sim/       Web Worker that runs the engine
+src/sim/       simulation worker, multi-core coordinator and MCU workers
 src/editor/    the canvas editor (wires, snapping, breadboard connections, undo)
 src/ui/        toolbar, components panel, menus, icons
 server/        local compile service (calls arduino-cli)
 examples/      example circuits with prebuilt .hex
-docs/          architecture and how to write parts
+docs/          architecture, solver, multi-core, how to write parts
 ```
 
-Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how it works, and [docs/WRITING_PARTS.md](docs/WRITING_PARTS.md) to add a part.
-
+Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how it works, [docs/SOLVER.md](docs/SOLVER.md) and [docs/MULTICORE.md](docs/MULTICORE.md) for the details, and [docs/WRITING_PARTS.md](docs/WRITING_PARTS.md) to add a part.
 
 ## License
 
-Axion is licensed under the [Apache License 2.0](LICENSE). Third-party components are listed in [NOTICE](NOTICE). All bundled dependencies are MIT or BSD. arduino-cli (GPL-3.0) is used as a separate program and is not distributed with Axion.
+Axion is licensed under the [Apache License 2.0](LICENSE). Third-party components are listed in [NOTICE](NOTICE). All bundled dependencies are MIT or BSD. arduino-cli (GPL-3.0) is used as a separate program and is not distributed with Axion. The prebuilt example firmware contains the Arduino core and libraries (LGPL-2.1).

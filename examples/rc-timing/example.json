@@ -1,0 +1,5 @@
+{
+  "name": "RC timing",
+  "description": "A pin charges a 100µF capacitor through 10k. The Uno times how long it takes to reach 63 % (one time constant, R × C ≈ 1 s) with analogRead(); the voltmeter shows the capacitor charging.",
+  "sketches": { "uno": "sketch.ino" }
+}

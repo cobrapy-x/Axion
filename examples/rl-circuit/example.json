@@ -1,0 +1,5 @@
+{
+  "name": "RL circuit",
+  "description": "A pin drives a 1 H inductor and a 220 Ω resistor. The Uno samples the resistor voltage with analogRead() and measures the time constant τ = L / R of the current rise.",
+  "sketches": { "uno": "sketch.ino" }
+}

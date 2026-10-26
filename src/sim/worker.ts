@@ -2,14 +2,23 @@
 /**
  * Simulation worker: runs the Engine off the UI thread, paced to real time,
  * and posts ~60 state snapshots per second for the views to animate.
+ *
+ * With 2+ microcontrollers and cross-origin isolation (SharedArrayBuffer), the MCUs run on
+ * several cores: this worker becomes the coordinator and starts MCU workers (see
+ * mc-coordinator.ts and docs/MULTICORE.md). Otherwise, or if that fails, everything runs
+ * here as before.
  */
-import { Engine } from '../core/engine';
+import type { Diagram } from '../core/diagram';
+import { Engine, type PartType } from '../core/engine';
 import { loadPartTypes } from '../core/parts-models';
+import { McuCoordinator, planLanes, type SpawnThread } from './mc-coordinator';
 import type { FromWorker, ToWorker } from './protocol';
 
-const engine = new Engine(loadPartTypes());
+const types: Map<string, PartType> = loadPartTypes();
+const engine = new Engine(types);
 let generation = 0;
 let running = false;
+let coordinator: McuCoordinator | null = null;
 
 const post = (msg: FromWorker) => (self as unknown as Worker).postMessage(msg);
 
@@ -64,23 +73,98 @@ async function run(gen: number) {
   }
 }
 
+// ───────────────────────────── multi-core ─────────────────────────────
+
+/** Microcontrollers that will actually run (an MCU part with firmware). */
+function mcuCount(diagram: Diagram, firmware: Record<string, string>): number {
+  return diagram.parts.filter((p) => types.get(p.type)?.manifest.mcu && firmware[p.id]).length;
+}
+
+function multicoreAvailable(): boolean {
+  return (
+    (globalThis as { crossOriginIsolated?: boolean }).crossOriginIsolated === true &&
+    typeof SharedArrayBuffer === 'function' &&
+    typeof Atomics?.wait === 'function' &&
+    typeof Worker === 'function'
+  );
+}
+
+const spawnMcuWorker: SpawnThread = (loaded, failed) => {
+  const w = new Worker(new URL('./mcu-worker.ts', import.meta.url), { type: 'module', name: 'axion-mcu' });
+  w.onmessage = (e: MessageEvent<{ type?: string }>) => {
+    if (e.data?.type === 'loaded') loaded();
+  };
+  w.onerror = (e) => {
+    e.preventDefault();
+    failed(e.message || 'MCU worker failed to load');
+  };
+  return { post: (m) => w.postMessage(m), terminate: () => w.terminate() };
+};
+
+/** A coordinator with MCU workers, or null to run single-threaded. Never throws. */
+async function startCoordinator(mcus: number, maxCores = Infinity): Promise<McuCoordinator | null> {
+  if (mcus < 2 || !multicoreAvailable()) return null;
+  const plan = planLanes(mcus, Math.min(maxCores, navigator.hardwareConcurrency || 1));
+  if (!plan) return null;
+  try {
+    return await McuCoordinator.start({ ...plan, spawn: spawnMcuWorker, timeoutMs: 5000 });
+  } catch (err) {
+    console.warn('Axion: multi-core start failed, running on one core.', err);
+    return null;
+  }
+}
+
+function stopCoordinator() {
+  coordinator?.dispose();
+  coordinator = null;
+  engine.offload = null;
+}
+
+async function start(gen: number, diagram: Diagram, firmware: Record<string, string>, maxCores?: number) {
+  stopCoordinator();
+  const co = await startCoordinator(mcuCount(diagram, firmware), maxCores);
+  if (gen !== generation) {
+    co?.dispose();
+    return;
+  }
+  coordinator = co;
+  engine.offload = co;
+  engine.load(diagram, firmware);
+  if (co) {
+    try {
+      await co.ready();
+    } catch (err) {
+      if (gen !== generation) return;
+      // A worker could not build its MCU: run everything here instead (a firmware error
+      // shows up again, now as a normal simulation error).
+      console.warn('Axion: multi-core start failed, running on one core.', err);
+      stopCoordinator();
+      engine.load(diagram, firmware);
+    }
+    if (gen !== generation) return;
+  }
+  post({ type: 'started', cores: coordinator?.cores ?? 1 });
+  running = true;
+  await run(gen);
+}
+
 self.onmessage = (e: MessageEvent<ToWorker>) => {
   const msg = e.data;
   try {
     switch (msg.type) {
       case 'start':
         generation++;
-        engine.load(msg.diagram, msg.firmware);
-        running = true;
-        run(generation).catch(fail);
+        running = false;
+        start(generation, msg.diagram, msg.firmware, msg.maxCores).catch(fail);
         break;
       case 'stop':
         generation++;
         running = false;
+        stopCoordinator();
         post({ type: 'stopped' });
         break;
       case 'input':
-        engine.input(msg.part, msg.event, msg.data);
+        if (running) engine.input(msg.part, msg.event, msg.data);
         break;
     }
   } catch (err) {
@@ -91,5 +175,6 @@ self.onmessage = (e: MessageEvent<ToWorker>) => {
 function fail(err: unknown) {
   running = false;
   generation++;
+  stopCoordinator();
   post({ type: 'error', message: err instanceof Error ? err.message : String(err) });
 }

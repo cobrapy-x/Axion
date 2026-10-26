@@ -40,9 +40,10 @@ A model is a function that receives a `PartContext` and returns any of these opt
 
 | Hook | When it is called | Use it to |
 |---|---|---|
-| `drive(pin)` | every circuit solve | say how the part drives a pin: `'high'` (5 V), `'low'` (0 V), a number of volts, `'pullup'`, `'pulldown'`, or `'z'` (not driving) |
+| `drive(pin)` | every circuit solve | say how the part drives a pin: `'high'` (5 V behind ~25 Ω), `'low'` (0 V), a number of volts (a stiff source: power pins, batteries), `'pullup'`, `'pulldown'` (~35 kΩ), `{ volts, ohms }`, or `'z'` (not driving) |
 | `switches()` | when topology changes | return pin pairs currently connected (switches, relays) |
-| `resistors()` | when topology changes | return pin pairs linked by a resistor |
+| `resistors()` | when topology changes | legacy: pin pairs linked by a 1 kΩ resistor; use `elements()` instead |
+| `elements()` | every circuit solve (return the same array while nothing changes) | describe the part's analog circuit: `R`, `C`, `L`, `V`, `D` (LED, zener), `SW`, `BJT`, `FET` between its pins, e.g. `[{ kind: 'R', a: '1', b: '2', ohms: 220, id: 'r' }]`; read an element's current with `ctx.current(id)`. See [SOLVER.md](SOLVER.md) |
 | `onPinChange(pin, level)` | the voltage on one of the part's pins changed | react to inputs (`ctx.now()` gives the exact time) |
 | `onData(pin, channel, value)` | another part sent data on the same net | UART bytes today; I2C/SPI later |
 | `step(timeNs)` | every 50 µs of simulated time | only for parts that must produce events on their own (CPUs, encoders) |

@@ -1,0 +1,10 @@
+{
+  "type": "axion-74hc595",
+  "name": "74HC595 shift register",
+  "category": "Logic",
+  "description": "8-bit serial-in, parallel-out shift register (DIP-16). Each rising edge on SHCP shifts DS in; a rising edge on STCP copies the 8 bits to Q0-Q7. Connect VCC and GND, tie OE to GND (outputs on) and MR to 5V (no reset). Drive it with shiftOut() or hardware SPI (MOSI → DS, SCK → SHCP, any pin → STCP as the latch). Chain chips by wiring Q7S to the next chip's DS.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "sr",
+  "tags": ["logic", "digital", "shift register", "spi", "ic", "chip"]
+}

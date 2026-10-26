@@ -832,6 +832,11 @@ export class Workspace {
     e.stopPropagation();
     if (this.running && node.ui?.manifest.interactive) return; // let the part handle the click
     this.root.focus({ preventScroll: true });
+    if (this.running) {
+      // While running, parts can't move, but selecting one opens its live settings (e.g. a sensor's distance).
+      this.select({ kind: 'part', id: node.part.id });
+      return;
+    }
     this.drag = {
       node,
       sx: e.clientX,

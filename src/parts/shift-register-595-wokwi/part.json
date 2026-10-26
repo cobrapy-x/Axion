@@ -1,0 +1,10 @@
+{
+  "type": "wokwi-74hc595",
+  "name": "74HC595 shift register (Wokwi)",
+  "category": "Logic",
+  "description": "Wokwi's 74HC595 type, so imported Wokwi diagrams run. Same chip as axion-74hc595.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "sr",
+  "hidden": true
+}

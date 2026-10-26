@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    {
+      "type": "wokwi-arduino-uno",
+      "id": "uno",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": -120,
+      "left": 150,
+      "attrs": {
+        "color": "green"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": -50,
+      "left": 145.65,
+      "rotate": 90,
+      "attrs": {
+        "value": "220"
+      }
+    },
+    {
+      "type": "axion-trimpot",
+      "id": "trim1",
+      "top": 242,
+      "left": 190,
+      "attrs": {
+        "value": "512",
+        "resistance": "10k"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "uno:9",
+      "r1:2",
+      "orange",
+      [
+        "v-12"
+      ]
+    ],
+    [
+      "r1:1",
+      "led1:A",
+      "orange",
+      []
+    ],
+    [
+      "led1:C",
+      "uno:GND.1",
+      "black",
+      [
+        "h-49.5"
+      ]
+    ],
+    [
+      "trim1:VCC",
+      "uno:5V",
+      "red",
+      [
+        "v10",
+        "h17.2",
+        "v-84",
+        "h-76"
+      ]
+    ],
+    [
+      "trim1:SIG",
+      "uno:A0",
+      "green",
+      [
+        "v20",
+        "h38.8",
+        "v-106",
+        "h-40"
+      ]
+    ],
+    [
+      "trim1:GND",
+      "uno:GND.1",
+      "black",
+      [
+        "v34",
+        "h-229.6",
+        "v-358",
+        "h145.5"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}

@@ -7,7 +7,7 @@ This product includes software developed by third parties:
 
 - avr8js (https://github.com/wokwi/avr8js)
   Copyright (C) 2019-2025 Uri Shaked. MIT License.
-  Used as the ATmega328P (Arduino Uno) CPU and peripheral emulator.
+  Used as the AVR (ATmega328P, ATmega2560) CPU and peripheral emulator.
 
 - @wokwi/elements (https://github.com/wokwi/wokwi-elements)
   Copyright (C) Uri Shaked. MIT License.
@@ -20,3 +20,10 @@ Tools invoked as separate programs (not distributed with Axion):
 
 - arduino-cli (https://github.com/arduino/arduino-cli), GPL-3.0.
   Axion calls it as an external process to compile sketches locally.
+
+Prebuilt example firmware:
+
+- The .hex files in examples/ and the boards' template.hex starter firmware were
+  compiled from the Arduino AVR core and its Wire, SPI and Servo libraries
+  (https://github.com/arduino), LGPL-2.1. Their sources are available from those
+  projects; each example's sketch.ino sits next to its .hex file.

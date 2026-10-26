@@ -1,0 +1,168 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    {
+      "type": "wokwi-arduino-uno",
+      "id": "uno",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-membrane-keypad",
+      "id": "keypad1",
+      "top": -378,
+      "left": 63,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledGreen",
+      "top": -182,
+      "left": -110,
+      "attrs": {
+        "color": "green"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rGreen",
+      "top": -145.65,
+      "left": -70,
+      "attrs": {
+        "value": "220"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledRed",
+      "top": -102,
+      "left": -110,
+      "attrs": {
+        "color": "red"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rRed",
+      "top": -65.65,
+      "left": -70,
+      "attrs": {
+        "value": "220"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "keypad1:R1",
+      "uno:9",
+      "gold",
+      [
+        "v25"
+      ]
+    ],
+    [
+      "keypad1:R2",
+      "uno:8",
+      "gold",
+      [
+        "v25"
+      ]
+    ],
+    [
+      "keypad1:R3",
+      "uno:7",
+      "gold",
+      [
+        "v25"
+      ]
+    ],
+    [
+      "keypad1:R4",
+      "uno:6",
+      "gold",
+      [
+        "v25"
+      ]
+    ],
+    [
+      "keypad1:C1",
+      "uno:5",
+      "blue",
+      [
+        "v25"
+      ]
+    ],
+    [
+      "keypad1:C2",
+      "uno:4",
+      "blue",
+      [
+        "v25"
+      ]
+    ],
+    [
+      "keypad1:C3",
+      "uno:3",
+      "blue",
+      [
+        "v25"
+      ]
+    ],
+    [
+      "keypad1:C4",
+      "uno:2",
+      "blue",
+      [
+        "v25"
+      ]
+    ],
+    [
+      "ledGreen:A",
+      "rGreen:1",
+      "green",
+      []
+    ],
+    [
+      "rGreen:2",
+      "uno:11",
+      "green",
+      [
+        "h20",
+        "v65"
+      ]
+    ],
+    [
+      "ledRed:A",
+      "rRed:1",
+      "orange",
+      []
+    ],
+    [
+      "rRed:2",
+      "uno:12",
+      "orange",
+      []
+    ],
+    [
+      "ledGreen:C",
+      "ledRed:C",
+      "black",
+      [
+        "h-22",
+        "v80"
+      ]
+    ],
+    [
+      "ledRed:C",
+      "uno:GND.1",
+      "black",
+      [
+        "v32"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}

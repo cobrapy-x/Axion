@@ -228,11 +228,13 @@ describe('Uno on a breadboard (end to end)', () => {
       e.stepTo(t * MS);
       seen.push(e.voltage('led1', 'A'));
     }
-    expect(seen).toEqual([0, 5, 0, 5]); // 500 ms on / off
-    expect(e.voltage('bb1', '12t.e')).toBe(5); // the LED's column follows pin 13
+    // 500 ms on / off; while on, the anode sits at the red LED's forward voltage (~1.86 V).
+    expect(seen.map((v) => (v! > 1.5 ? 1 : v))).toEqual([0, 1, 0, 1]);
+    expect(seen[1]).toBeCloseTo(1.86, 1);
+    expect(e.voltage('bb1', '12t.e')).toBeCloseTo(1.86, 1); // the LED's column (its anode)
     e.snapshot(); // brightness is averaged since the previous snapshot
     e.stepTo(1900 * MS);
-    expect(e.snapshot().states.led1.brightness).toBe(1);
+    expect(e.snapshot().states.led1.brightness).toBeCloseTo(0.63, 1); // ~12.6 mA, full is 20 mA
     // Without the implicit connections nothing is connected.
     const bare = engineFor(parts, wires, { uno: hex });
     bare.stepTo(700 * MS);
@@ -267,7 +269,7 @@ describe('Uno on a breadboard (end to end)', () => {
     const e = new Engine(types);
     e.load(d, { uno: read('examples/breadboard-led/sketch.hex') });
     e.stepTo(700 * MS);
-    expect(e.voltage('led1', 'A')).toBe(5);
+    expect(e.voltage('led1', 'A')).toBeCloseTo(1.86, 1); // forward voltage of the lit red LED
     expect(e.voltage('led1', 'C')).toBe(0);
     expect(e.voltage('bb1', 'bp.25')).toBe(5); // 5V rail
     e.input('btn1', 'press');

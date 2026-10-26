@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: Apache-2.0
 // One-time setup: checks for arduino-cli, installs the Arduino AVR core (Uno/Nano/Mega)
-// and the libraries used by the examples (Servo).
+// and the libraries most sketches need (Servo, LiquidCrystal I2C / LiquidCrystal for the 16×2 LCD).
 // After this, compiling works fully offline.
 import { execFileSync, spawnSync } from 'node:child_process';
 
@@ -32,6 +32,8 @@ for (const args of [
   ['core', 'update-index'],
   ['core', 'install', 'arduino:avr'],
   ['lib', 'install', 'Servo'],
+  ['lib', 'install', 'LiquidCrystal I2C'],
+  ['lib', 'install', 'LiquidCrystal'],
 ]) {
   console.log(`\n> ${cli} ${args.join(' ')}`);
   const r = spawnSync(cli, args, { stdio: 'inherit' });

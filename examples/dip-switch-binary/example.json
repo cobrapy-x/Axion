@@ -1,0 +1,7 @@
+{
+  "name": "DIP switch binary number",
+  "description": "Read 8 DIP switches with INPUT_PULLUP and print the value in binary, decimal and hex. Click the switches while it runs.",
+  "sketches": {
+    "uno": "sketch.ino"
+  }
+}

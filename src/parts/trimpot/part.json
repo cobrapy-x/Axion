@@ -1,0 +1,15 @@
+{
+  "type": "axion-trimpot",
+  "name": "Trimmer potentiometer",
+  "category": "Input",
+  "description": "A small square trimmer (trimpot) that you adjust with a screwdriver and then leave alone, e.g. to set a contrast or a threshold. Like a potentiometer it is two resistors VCC–SIG and SIG–GND that add up to its resistance: SIG gives a voltage between GND and VCC. Drag the screw round (also while the simulation runs). The code on top is the value: 103 = 10 × 10³ Ω = 10 kΩ.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "trim",
+  "interactive": true,
+  "props": {
+    "value": { "type": "number", "label": "Position (0-1023)", "default": 512 },
+    "resistance": { "type": "string", "label": "Resistance", "default": "10k", "unit": "Ω" }
+  },
+  "tags": ["potentiometer", "trimmer", "trimpot", "variable resistor"]
+}

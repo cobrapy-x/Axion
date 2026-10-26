@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    {
+      "type": "wokwi-arduino-uno",
+      "id": "uno",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-relay-module",
+      "id": "relay1",
+      "top": -170,
+      "left": 200,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": -181.65,
+      "left": 390,
+      "attrs": {
+        "value": "470"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": -206,
+      "left": 462,
+      "attrs": {
+        "color": "green"
+      },
+      "rotate": 90
+    },
+    {
+      "type": "axion-battery-9v",
+      "id": "bat1",
+      "top": -209.4,
+      "left": 561,
+      "attrs": {},
+      "rotate": 270
+    }
+  ],
+  "connections": [
+    [
+      "relay1:IN",
+      "uno:7",
+      "orange",
+      []
+    ],
+    [
+      "relay1:GND",
+      "uno:GND.1",
+      "black",
+      []
+    ],
+    [
+      "relay1:VCC",
+      "uno:5V",
+      "red",
+      [
+        "h-250",
+        "v351.9",
+        "h210"
+      ]
+    ],
+    [
+      "relay1:NO",
+      "r1:1",
+      "green",
+      [
+        "h6",
+        "v-30"
+      ]
+    ],
+    [
+      "r1:2",
+      "led1:A",
+      "green",
+      []
+    ],
+    [
+      "led1:C",
+      "bat1:-",
+      "black",
+      [
+        "v-16",
+        "h40",
+        "*",
+        "h15"
+      ]
+    ],
+    [
+      "relay1:COM",
+      "bat1:+",
+      "red",
+      []
+    ]
+  ],
+  "dependencies": {}
+}

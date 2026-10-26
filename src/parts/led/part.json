@@ -2,7 +2,7 @@
   "type": "wokwi-led",
   "name": "LED",
   "category": "Output",
-  "description": "Light-emitting diode. Brightness follows PWM duty cycle.",
+  "description": "Light-emitting diode. Needs a series resistor (220 Ω on 5 V). Brightness follows the current (full at 20 mA) and the PWM duty cycle; forward voltage depends on the colour.",
   "version": "1.0.0",
   "license": "Apache-2.0",
   "idPrefix": "led",

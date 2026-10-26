@@ -1,0 +1,5 @@
+{
+  "name": "Voltage divider",
+  "description": "Two 10k resistors halve 5 V on A0, and a potentiometer loaded by a resistor feeds A1. The Uno prints both voltages; the voltmeter shows A0.",
+  "sketches": { "uno": "sketch.ino" }
+}

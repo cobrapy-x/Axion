@@ -1,0 +1,13 @@
+{
+  "type": "axion-zener",
+  "name": "Zener diode",
+  "category": "Semiconductors",
+  "description": "A zener diode (1N47xx, 1 W) conducts forward like a normal diode, and backwards once the voltage reaches its zener voltage, which it then holds nearly constant. Connect the cathode (K, black band) to the higher voltage through a resistor and the anode (A) to GND: the cathode stays at the zener voltage, a simple voltage regulator or reference.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "dz",
+  "props": {
+    "voltage": { "type": "number", "label": "Zener voltage", "default": 5.1, "unit": "V" }
+  },
+  "tags": ["diode", "zener", "regulator", "reference"]
+}

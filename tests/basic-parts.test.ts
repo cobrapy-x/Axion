@@ -115,8 +115,10 @@ describe('transistors (switching model)', () => {
     );
     expect(e.level('q', 'C')).toBe(0);
     e.input('d', 'b', 'low');
-    expect(e.level('q', 'C')).toBe(1);
-    expect(e.voltage('q', 'C')).toBe(5);
+    // Analog solver: with no base resistor ~70 mA of base current sags the emitter's
+    // driving pin (25 Ω) to ~3.2 V, and C sits VCE(sat) ≈ 0.2 V below it.
+    expect(e.voltage('q', 'C')).toBeCloseTo(3, 1);
+    expect(e.voltage('q', 'E')! - e.voltage('q', 'C')!).toBeCloseTo(0.2, 1);
     e.input('d', 'b', 4.6); // only 0.4 V below the emitter
     expect(e.level('q', 'C')).toBe(0);
   });
@@ -243,12 +245,15 @@ describe('7-segment display', () => {
     });
     e.stepTo(200 * MS);
     states(e);
+    // The single 220 Ω on COM shares ~14 mA between the lit segments (dim but lit, as on a
+    // real display); count a segment as lit above 5 %, like the view does.
+    const lit = () => (states(e).seg1.values as number[]).map((v) => (v > 0.05 ? 1 : 0));
     e.stepTo(300 * MS);
-    expect(states(e).seg1.values).toEqual([1, 1, 1, 1, 1, 1, 0, 0]); // 0
+    expect(lit()).toEqual([1, 1, 1, 1, 1, 1, 0, 0]); // 0
     e.stepTo(600 * MS);
     states(e);
     e.stepTo(700 * MS);
-    expect(states(e).seg1.values).toEqual([0, 1, 1, 0, 0, 0, 0, 0]); // 1
+    expect(lit()).toEqual([0, 1, 1, 0, 0, 0, 0, 0]); // 1
   });
 });
 
@@ -265,7 +270,9 @@ describe('RGB LED', () => {
     expect(mid.r).toBeLessThan(0.8);
     expect(mid.g).toBeGreaterThan(0.2);
     expect(mid.g).toBeLessThan(0.8);
-    expect(mid.r + mid.g).toBeCloseTo(1, 1);
+    // Brightness follows current (full at 20 mA): 220 Ω gives red ~12.5 mA, green ~11.4 mA at
+    // 100 % duty, so the two duty cycles adding up to 1 give ~0.6 together.
+    expect(mid.r + mid.g).toBeCloseTo(0.6, 1);
     expect(mid.b).toBe(0);
     // Second phase: green → blue, red off.
     e.stepTo(1600 * MS);
@@ -336,8 +343,9 @@ describe('new examples run cleanly', () => {
     e.stepTo(500 * MS);
     let s = states(e);
     expect(s.q1.on).toBe(true);
-    expect(s.led1.brightness).toBe(1);
-    expect(s.vm1.volts).toBe(5);
+    // ~13.6 mA through 220 Ω (full brightness is 20 mA); the voltmeter across the LED shows its ~1.86 V drop.
+    expect(s.led1.brightness).toBeCloseTo(0.68, 1);
+    expect(s.vm1.volts).toBeCloseTo(1.86, 1);
     e.stepTo(1400 * MS);
     states(e);
     e.stepTo(1500 * MS);

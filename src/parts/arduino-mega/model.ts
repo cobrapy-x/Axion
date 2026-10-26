@@ -33,5 +33,7 @@ export default avrBoard({
     'GND.5': 0,
     RESET: 'pullup',
   },
+  i2c: { sda: '20', scl: '21' }, // header SDA/SCL pins join these through part.json `internal`
+  spi: { mosi: '51', miso: '50', sck: '52' },
   adc: Array.from({ length: 16 }, (_, i) => `A${i}`),
 });

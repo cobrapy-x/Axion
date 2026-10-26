@@ -1,6 +1,6 @@
 {
   "name": "axion",
-  "version": "0.1.0",
+  "version": "0.4.0",
   "description": "Axion: a lightweight, offline, open-source circuit and microcontroller simulator with pluggable parts.",
   "license": "Apache-2.0",
   "private": true,

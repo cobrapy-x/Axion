@@ -1,0 +1,10 @@
+{
+  "type": "axion-diode-1n4007",
+  "name": "Rectifier diode (1N4007)",
+  "category": "Semiconductors",
+  "description": "A rugged rectifier diode (black body, grey band = cathode K). Current flows only from the anode (A) to the cathode; it drops about 0.7 V and blocks up to 1000 V the other way. Use it to protect against reversed batteries, to rectify, and as the flyback diode across motors and relay coils (band towards +). Up to 1 A.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "d",
+  "tags": ["diode", "1n4007", "rectifier", "flyback"]
+}

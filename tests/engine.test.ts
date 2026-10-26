@@ -84,7 +84,9 @@ describe('Arduino Uno firmware (avr8js)', () => {
     const seen = new Set<number>();
     for (let t = 300; t <= 1600; t += 100) {
       e.stepTo(t * MS);
-      seen.add(e.level('led1', 'A') ?? -1);
+      // The lit LED's anode sits at its forward voltage (~1.86 V), below the logic HIGH threshold.
+      const v = e.voltage('led1', 'A');
+      seen.add(v === null ? -1 : v > 1.5 ? 1 : 0);
     }
     expect(seen).toEqual(new Set([0, 1]));
 

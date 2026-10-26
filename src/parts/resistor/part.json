@@ -2,15 +2,16 @@
   "type": "wokwi-resistor",
   "name": "Resistor",
   "category": "Passive",
-  "description": "Resistor. Acts as a weak link: pull-up / pull-down / current limiting.",
+  "description": "Resistor. Limits current, makes voltage dividers, pull-ups and pull-downs. Value in ohms: 220, 4.7k, 1M.",
   "version": "1.0.0",
   "license": "Apache-2.0",
   "idPrefix": "r",
   "props": {
     "value": {
-      "type": "number",
+      "type": "string",
       "label": "Resistance (Ω)",
-      "default": 220
+      "default": "220",
+      "unit": "Ω"
     }
   },
   "tags": [

@@ -1,0 +1,5 @@
+{
+  "name": "MOSFET motor speed",
+  "description": "A logic-level power MOSFET (IRLZ44N) switches a 9 V motor with PWM; the potentiometer sets the speed. Gate resistor, pull-down and flyback diode wired as in real life.",
+  "sketches": { "uno": "sketch.ino" }
+}

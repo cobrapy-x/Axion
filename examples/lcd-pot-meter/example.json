@@ -1,0 +1,5 @@
+{
+  "name": "LCD 16×2 (I²C): potentiometer meter",
+  "description": "Turn the knob: the LCD shows analogRead(A0), a percentage and a bar graph drawn with custom characters. Uses only Wire.",
+  "sketches": { "uno": "sketch.ino" }
+}

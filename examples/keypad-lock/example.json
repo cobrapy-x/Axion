@@ -1,0 +1,7 @@
+{
+  "name": "Keypad code lock",
+  "description": "Scan a 4×4 keypad row by row (no library) and unlock with 1234#. Green LED = unlocked, red LED = locked; * locks again.",
+  "sketches": {
+    "uno": "sketch.ino"
+  }
+}

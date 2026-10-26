@@ -1,0 +1,10 @@
+{
+  "type": "axion-schottky",
+  "name": "Schottky diode (1N5819)",
+  "category": "Semiconductors",
+  "description": "A Schottky diode: like a normal diode (current from anode A to cathode K, the grey band) but it drops only about 0.3 V, so less power is lost. Used in power supplies, for reverse-polarity protection and as a fast flyback diode. Blocks up to 40 V, carries up to 1 A.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "d",
+  "tags": ["diode", "schottky", "1n5819", "flyback"]
+}

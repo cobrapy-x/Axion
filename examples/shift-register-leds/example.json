@@ -1,0 +1,5 @@
+{
+  "name": "74HC595 shift register: Knight Rider (shiftOut)",
+  "description": "Three pins drive 8 LEDs through a 74HC595: shiftOut() sends the pattern bit by bit, a pulse on the latch pin shows it.",
+  "sketches": { "uno": "sketch.ino" }
+}

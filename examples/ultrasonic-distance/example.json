@@ -1,0 +1,7 @@
+{
+  "name": "Ultrasonic distance (HC-SR04)",
+  "description": "Measure distance with pulseIn() and print it in cm; the LED lights when something is closer than 20 cm. Drag the Distance slider of the sensor while it runs.",
+  "sketches": {
+    "uno": "sketch.ino"
+  }
+}

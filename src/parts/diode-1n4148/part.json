@@ -1,0 +1,10 @@
+{
+  "type": "axion-diode-1n4148",
+  "name": "Signal diode (1N4148)",
+  "category": "Semiconductors",
+  "description": "A small fast diode in a glass body: current flows only from the anode (A) to the cathode (K, the side with the black band). It drops about 0.65 V when conducting and blocks the other way (up to 100 V). Good for logic signals, protecting inputs and small relays; up to 300 mA.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "d",
+  "tags": ["diode", "1n4148", "signal", "flyback"]
+}

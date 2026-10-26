@@ -1,0 +1,155 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    {
+      "type": "wokwi-arduino-uno",
+      "id": "uno",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-dip-switch-8",
+      "id": "dip1",
+      "top": -91.3,
+      "left": 154.9,
+      "attrs": {
+        "value": "00000101"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "dip1:1a",
+      "uno:9",
+      "green",
+      [
+        "v25"
+      ]
+    ],
+    [
+      "dip1:2a",
+      "uno:8",
+      "green",
+      [
+        "v25"
+      ]
+    ],
+    [
+      "dip1:3a",
+      "uno:7",
+      "green",
+      [
+        "v25"
+      ]
+    ],
+    [
+      "dip1:4a",
+      "uno:6",
+      "green",
+      [
+        "v25"
+      ]
+    ],
+    [
+      "dip1:5a",
+      "uno:5",
+      "green",
+      [
+        "v25"
+      ]
+    ],
+    [
+      "dip1:6a",
+      "uno:4",
+      "green",
+      [
+        "v25"
+      ]
+    ],
+    [
+      "dip1:7a",
+      "uno:3",
+      "green",
+      [
+        "v25"
+      ]
+    ],
+    [
+      "dip1:8a",
+      "uno:2",
+      "green",
+      [
+        "v25"
+      ]
+    ],
+    [
+      "dip1:2b",
+      "dip1:1b",
+      "black",
+      [
+        "v-12"
+      ]
+    ],
+    [
+      "dip1:3b",
+      "dip1:2b",
+      "black",
+      [
+        "v-12"
+      ]
+    ],
+    [
+      "dip1:4b",
+      "dip1:3b",
+      "black",
+      [
+        "v-12"
+      ]
+    ],
+    [
+      "dip1:5b",
+      "dip1:4b",
+      "black",
+      [
+        "v-12"
+      ]
+    ],
+    [
+      "dip1:6b",
+      "dip1:5b",
+      "black",
+      [
+        "v-12"
+      ]
+    ],
+    [
+      "dip1:7b",
+      "dip1:6b",
+      "black",
+      [
+        "v-12"
+      ]
+    ],
+    [
+      "dip1:8b",
+      "dip1:7b",
+      "black",
+      [
+        "v-12"
+      ]
+    ],
+    [
+      "dip1:1b",
+      "uno:GND.1",
+      "black",
+      [
+        "v-12",
+        "h-47.5"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}

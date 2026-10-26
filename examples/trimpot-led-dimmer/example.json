@@ -1,0 +1,5 @@
+{
+  "name": "Trimmer LED dimmer",
+  "description": "Drag the trimmer potentiometer's screw to set the brightness of an LED with analogWrite().",
+  "sketches": { "uno": "sketch.ino" }
+}

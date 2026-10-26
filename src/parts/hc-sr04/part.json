@@ -1,0 +1,13 @@
+{
+  "type": "wokwi-hc-sr04",
+  "name": "Ultrasonic distance sensor (HC-SR04)",
+  "category": "Sensors",
+  "description": "Measures distance with sound, like a bat. Send a HIGH pulse of at least 10 µs on TRIG; the sensor then sets ECHO HIGH for 58 µs per centimetre to the obstacle (pulseIn(echoPin, HIGH) / 58 = distance in cm). Range 2–400 cm; with nothing in range ECHO stays HIGH for 38 ms. Power it from 5 V. Drag the Distance slider in the inspector while the simulation runs to move the obstacle.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "sonar",
+  "props": {
+    "distance": { "type": "number", "label": "Distance", "default": 100, "min": 2, "max": 400, "step": 1, "unit": "cm", "live": true }
+  },
+  "tags": ["ultrasonic", "distance", "sonar", "sensor", "hc-sr04"]
+}

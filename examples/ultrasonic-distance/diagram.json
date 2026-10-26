@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    {
+      "type": "wokwi-arduino-uno",
+      "id": "uno",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-hc-sr04",
+      "id": "sonar1",
+      "top": -260,
+      "left": 72.2,
+      "attrs": {
+        "distance": "100"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": -112,
+      "left": 100,
+      "attrs": {
+        "color": "red"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": -36,
+      "left": 95.6,
+      "attrs": {
+        "value": "220"
+      },
+      "rotate": 90
+    }
+  ],
+  "connections": [
+    [
+      "sonar1:TRIG",
+      "uno:10",
+      "orange",
+      []
+    ],
+    [
+      "sonar1:ECHO",
+      "uno:9",
+      "purple",
+      []
+    ],
+    [
+      "sonar1:VCC",
+      "uno:5V",
+      "red",
+      [
+        "v8",
+        "h-193.5",
+        "v343",
+        "h210"
+      ]
+    ],
+    [
+      "sonar1:GND",
+      "uno:GND.2",
+      "black",
+      [
+        "v8",
+        "h130",
+        "v353",
+        "h-134"
+      ]
+    ],
+    [
+      "led1:A",
+      "r1:1",
+      "red",
+      []
+    ],
+    [
+      "r1:2",
+      "uno:13",
+      "green",
+      []
+    ],
+    [
+      "led1:C",
+      "uno:GND.1",
+      "black",
+      []
+    ]
+  ],
+  "dependencies": {}
+}

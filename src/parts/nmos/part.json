@@ -1,0 +1,10 @@
+{
+  "type": "axion-nmos",
+  "name": "N-channel MOSFET (2N7000)",
+  "category": "Semiconductors",
+  "description": "A small MOSFET used as a switch controlled by voltage: when the gate (G) is more than about 2 V above the source (S), current can flow from the drain (D) to the source, through about 2.5 Ω. The gate draws no current, so an Arduino pin can drive it directly; add a 10kΩ pull-down from G to GND so it stays off while the pin floats. Connect S to GND and the load between the supply and D. Up to 200 mA.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "q",
+  "tags": ["mosfet", "transistor", "2n7000", "switch"]
+}

@@ -1,0 +1,13 @@
+{
+  "type": "wokwi-relay-module",
+  "name": "Relay module (5 V)",
+  "category": "Switches & relays",
+  "description": "A 1-channel 5 V relay board: an Arduino pin switches a separate circuit, even a high-voltage or high-current one. Power the board from VCC (5 V) and GND, and drive IN from a pin. When IN is HIGH (or LOW, for an active-low board) the coil clicks on after about 10 ms and COM connects to NO; otherwise COM connects to NC. The contacts are fully isolated from the Arduino. The red LED shows power, the green LED shows the coil is on.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "relay",
+  "props": {
+    "trigger": { "type": "select", "label": "IN turns the relay on when", "default": "high", "options": ["high", "low"] }
+  },
+  "tags": ["relay", "switch", "module", "output"]
+}

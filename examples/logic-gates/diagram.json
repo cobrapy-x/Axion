@@ -1,0 +1,348 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    {
+      "type": "axion-battery-aa",
+      "id": "bat1",
+      "top": 300,
+      "left": 560,
+      "attrs": {
+        "count": "3"
+      },
+      "rotate": 90
+    },
+    {
+      "type": "wokwi-slide-switch",
+      "id": "swA",
+      "top": -30,
+      "left": 60,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-slide-switch",
+      "id": "swB",
+      "top": 100,
+      "left": 60,
+      "attrs": {}
+    },
+    {
+      "type": "axion-gate-and",
+      "id": "gAnd",
+      "top": 0,
+      "left": 240,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rAnd",
+      "top": 32.75,
+      "left": 350,
+      "attrs": {
+        "value": "220"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledAnd",
+      "top": 8.399999999999999,
+      "left": 422,
+      "attrs": {
+        "color": "red"
+      },
+      "rotate": 90
+    },
+    {
+      "type": "axion-gate-or",
+      "id": "gOr",
+      "top": 130,
+      "left": 240,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rOr",
+      "top": 162.75,
+      "left": 350,
+      "attrs": {
+        "value": "220"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledOr",
+      "top": 138.4,
+      "left": 422,
+      "attrs": {
+        "color": "yellow"
+      },
+      "rotate": 90
+    },
+    {
+      "type": "axion-gate-xor",
+      "id": "gXor",
+      "top": 260,
+      "left": 240,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rXor",
+      "top": 292.75,
+      "left": 350,
+      "attrs": {
+        "value": "220"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledXor",
+      "top": 268.4,
+      "left": 422,
+      "attrs": {
+        "color": "green"
+      },
+      "rotate": 90
+    }
+  ],
+  "connections": [
+    [
+      "gAnd:Y",
+      "rAnd:1",
+      "orange",
+      []
+    ],
+    [
+      "rAnd:2",
+      "ledAnd:A",
+      "orange",
+      []
+    ],
+    [
+      "ledAnd:C",
+      "bat1:-",
+      "black",
+      [
+        "v-22",
+        "h75",
+        "*",
+        "h60"
+      ]
+    ],
+    [
+      "gAnd:GND",
+      "bat1:-",
+      "black",
+      [
+        "v12",
+        "h212",
+        "*",
+        "h60"
+      ]
+    ],
+    [
+      "gAnd:VCC",
+      "bat1:+",
+      "red",
+      [
+        "v-12",
+        "h232",
+        "*",
+        "h40"
+      ]
+    ],
+    [
+      "gOr:Y",
+      "rOr:1",
+      "orange",
+      []
+    ],
+    [
+      "rOr:2",
+      "ledOr:A",
+      "orange",
+      []
+    ],
+    [
+      "ledOr:C",
+      "bat1:-",
+      "black",
+      [
+        "v-22",
+        "h75",
+        "*",
+        "h60"
+      ]
+    ],
+    [
+      "gOr:GND",
+      "bat1:-",
+      "black",
+      [
+        "v12",
+        "h212",
+        "*",
+        "h60"
+      ]
+    ],
+    [
+      "gOr:VCC",
+      "bat1:+",
+      "red",
+      [
+        "v-12",
+        "h232",
+        "*",
+        "h40"
+      ]
+    ],
+    [
+      "gAnd:A",
+      "gOr:A",
+      "blue",
+      [
+        "h-40",
+        "*",
+        "h40"
+      ]
+    ],
+    [
+      "gAnd:B",
+      "gOr:B",
+      "violet",
+      [
+        "h-60",
+        "*",
+        "h60"
+      ]
+    ],
+    [
+      "gXor:Y",
+      "rXor:1",
+      "orange",
+      []
+    ],
+    [
+      "rXor:2",
+      "ledXor:A",
+      "orange",
+      []
+    ],
+    [
+      "ledXor:C",
+      "bat1:-",
+      "black",
+      [
+        "v-22",
+        "h75",
+        "*",
+        "h60"
+      ]
+    ],
+    [
+      "gXor:GND",
+      "bat1:-",
+      "black",
+      [
+        "v12",
+        "h212",
+        "*",
+        "h60"
+      ]
+    ],
+    [
+      "gXor:VCC",
+      "bat1:+",
+      "red",
+      [
+        "v-12",
+        "h232",
+        "*",
+        "h40"
+      ]
+    ],
+    [
+      "gOr:A",
+      "gXor:A",
+      "blue",
+      [
+        "h-40",
+        "*",
+        "h40"
+      ]
+    ],
+    [
+      "gOr:B",
+      "gXor:B",
+      "violet",
+      [
+        "h-60",
+        "*",
+        "h60"
+      ]
+    ],
+    [
+      "swA:2",
+      "gAnd:A",
+      "blue",
+      [
+        "v24.8"
+      ]
+    ],
+    [
+      "swB:2",
+      "gOr:B",
+      "violet",
+      [
+        "v10",
+        "h104",
+        "*",
+        "h60"
+      ]
+    ],
+    [
+      "swA:3",
+      "gAnd:VCC",
+      "red",
+      [
+        "v6",
+        "h12",
+        "v-22"
+      ]
+    ],
+    [
+      "swB:3",
+      "swA:3",
+      "red",
+      [
+        "v6",
+        "h12",
+        "*",
+        "h-12",
+        "v-6"
+      ]
+    ],
+    [
+      "swA:1",
+      "bat1:-",
+      "black",
+      [
+        "v6",
+        "h-26.5",
+        "v414.8"
+      ]
+    ],
+    [
+      "swB:1",
+      "bat1:-",
+      "black",
+      [
+        "v6",
+        "h-16.5",
+        "v284.8"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}

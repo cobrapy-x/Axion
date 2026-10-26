@@ -1,0 +1,14 @@
+{
+  "type": "wokwi-membrane-keypad",
+  "name": "4×4 keypad",
+  "category": "Input",
+  "description": "Membrane keypad with 16 keys in 4 rows (R1–R4) and 4 columns (C1–C4). Pressing a key connects its row pin to its column pin, so a sketch finds the key by pulling one row LOW at a time and reading the columns with INPUT_PULLUP (or the other way round). Click keys while the simulation runs, type them on your keyboard after clicking the keypad, or Ctrl/Cmd+click to hold several keys down.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "keypad",
+  "interactive": true,
+  "props": {
+    "columns": { "type": "select", "label": "Columns", "default": "4", "options": ["4", "3"] }
+  },
+  "tags": ["keypad", "matrix", "keyboard", "buttons"]
+}

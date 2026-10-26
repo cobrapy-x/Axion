@@ -1,0 +1,16 @@
+{
+  "type": "wokwi-photoresistor-sensor",
+  "name": "Light sensor module (LDR)",
+  "category": "Sensors",
+  "description": "A photoresistor on a small board with a comparator (LM393). Power it from 5V and GND. AO is an analog voltage that goes up in the dark (the LDR and a 10kΩ resistor make a divider): read it with analogRead(). DO is digital: LOW when it is bright, HIGH when it is dark; the switching point is the Threshold voltage on AO (the blue trimmer on a real module). The DO LED lights when light is detected. Select it and drag the Light slider while the simulation runs.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "ldr",
+  "props": {
+    "lux": { "type": "number", "label": "Light", "default": 500, "min": 0, "max": 1000, "step": 1, "unit": "lux", "live": true },
+    "threshold": { "type": "number", "label": "Threshold (on AO)", "default": 2.5, "min": 0, "max": 5, "step": 0.1, "unit": "V", "live": true },
+    "rl10": { "type": "number", "label": "LDR resistance at 10 lux (kΩ)", "default": 50 },
+    "gamma": { "type": "number", "label": "Gamma (slope)", "default": 0.7 }
+  },
+  "tags": ["ldr", "photoresistor", "light", "sensor", "module", "lm393"]
+}

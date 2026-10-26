@@ -1,0 +1,7 @@
+{
+  "name": "Relay switches a 9 V LED circuit",
+  "description": "The Uno clicks a 5 V relay module on and off every second; the relay contact switches an LED powered by its own 9 V battery.",
+  "sketches": {
+    "uno": "sketch.ino"
+  }
+}

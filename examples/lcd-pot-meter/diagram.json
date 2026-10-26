@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    {
+      "type": "wokwi-arduino-uno",
+      "id": "uno",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd1",
+      "top": -150,
+      "left": 300,
+      "attrs": {
+        "pins": "i2c"
+      }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot1",
+      "top": 140,
+      "left": -130,
+      "attrs": {
+        "value": "512"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "lcd1:GND",
+      "uno:GND.1",
+      "black",
+      [
+        "h-188.5"
+      ]
+    ],
+    [
+      "lcd1:VCC",
+      "uno:5V",
+      "red",
+      [
+        "h-12",
+        "v330"
+      ]
+    ],
+    [
+      "lcd1:SDA",
+      "uno:A4.2",
+      "blue",
+      [
+        "h-207"
+      ]
+    ],
+    [
+      "lcd1:SCL",
+      "uno:A5.2",
+      "purple",
+      [
+        "h-217"
+      ]
+    ],
+    [
+      "pot1:VCC",
+      "uno:5V",
+      "red",
+      [
+        "v14"
+      ]
+    ],
+    [
+      "pot1:SIG",
+      "uno:A0",
+      "green",
+      [
+        "v34"
+      ]
+    ],
+    [
+      "pot1:GND",
+      "uno:GND.3",
+      "black",
+      [
+        "v44"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}

@@ -1,0 +1,5 @@
+{
+  "name": "LDR night light",
+  "description": "A photoresistor and a 10k resistor make a light sensor on A0; the LED turns on when it gets dark. Click the LDR while running and drag its Light slider.",
+  "sketches": { "uno": "sketch.ino" }
+}

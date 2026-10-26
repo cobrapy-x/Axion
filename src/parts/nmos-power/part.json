@@ -1,0 +1,13 @@
+{
+  "type": "axion-nmos-power",
+  "name": "Power MOSFET (IRLZ44N)",
+  "category": "Semiconductors",
+  "description": "A big N-channel MOSFET in a TO-220 package for switching motors, LED strips and solenoids from an Arduino pin. IRLZ44N is \"logic level\": a 5 V gate turns it fully on (about 0.025 Ω), so it barely warms up. The IRF520 needs about 4 V on the gate and is weaker at 5 V. Wire: S to GND, load between the supply and D, the pin to G through 100–220 Ω, a 10kΩ pull-down from G to GND, and a flyback diode across a motor or coil. PWM (analogWrite) controls the speed.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "q",
+  "props": {
+    "model": { "type": "select", "label": "Model", "default": "IRLZ44N", "options": ["IRLZ44N", "IRF520"] }
+  },
+  "tags": ["mosfet", "transistor", "power", "irlz44n", "irf520", "motor", "switch"]
+}

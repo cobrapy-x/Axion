@@ -2,12 +2,18 @@
   "type": "axion-capacitor",
   "name": "Capacitor (ceramic)",
   "category": "Passive",
-  "description": "Small ceramic disc capacitor, often 100nF, placed next to chips to smooth their power supply. It has no polarity. Charging is not simulated yet: in Axion it behaves as an open circuit.",
+  "description": "Small ceramic disc capacitor, often 100nF, placed next to chips to smooth their power supply. It has no polarity. It charges and discharges through the circuit (RC timing).",
   "version": "1.0.0",
   "license": "Apache-2.0",
   "idPrefix": "c",
   "props": {
-    "capacitance": { "type": "string", "label": "Capacitance", "default": "100nF" }
+    "capacitance": {
+      "type": "string",
+      "label": "Capacitance",
+      "default": "100nF"
+    }
   },
-  "tags": ["basic"]
+  "tags": [
+    "basic"
+  ]
 }

@@ -2,7 +2,7 @@
   "type": "axion-npn",
   "name": "NPN transistor (2N2222)",
   "category": "Semiconductors",
-  "description": "A small NPN transistor used as an electronic switch: a small current into the base (B) lets a bigger current flow from the collector (C) to the emitter (E). Connect E to GND, feed B from an Arduino pin through a 1kΩ resistor, and put the load (LED, buzzer, relay) between the supply and C. Switching model only: C and E connect when B is at least 0.6 V above E (no amplification).",
+  "description": "A small NPN transistor used as an electronic switch or amplifier: a small current into the base (B) lets a current up to about 100 times bigger flow from the collector (C) to the emitter (E). Connect E to GND, feed B from an Arduino pin through a 1kΩ resistor, and put the load (LED, buzzer, relay) between the supply and C. Conducts when B is about 0.65 V above E; fully on (saturated) it drops about 0.2 V.",
   "version": "1.0.0",
   "license": "Apache-2.0",
   "idPrefix": "q"

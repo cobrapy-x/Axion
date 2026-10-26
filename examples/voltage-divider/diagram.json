@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    { "type": "wokwi-arduino-uno", "id": "uno", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-resistor", "id": "r1", "top": 262, "left": 280, "rotate": 90, "attrs": { "value": "10k" } },
+    { "type": "wokwi-resistor", "id": "r2", "top": 340, "left": 280, "rotate": 90, "attrs": { "value": "10k" } },
+    { "type": "wokwi-potentiometer", "id": "pot1", "top": 250, "left": 380, "attrs": { "value": "512", "resistance": "10k" } },
+    { "type": "wokwi-resistor", "id": "r3", "top": 345, "left": 400, "rotate": 90, "attrs": { "value": "10k" } },
+    { "type": "axion-voltmeter", "id": "vm1", "top": 20, "left": 330, "attrs": {} }
+  ],
+  "connections": [
+    ["uno:5V", "r1:1", "red", ["v20"]],
+    ["r1:2", "r2:1", "green", []],
+    ["r2:2", "uno:GND.2", "black", ["v20", "h-140"]],
+    ["r1:2", "uno:A0", "green", ["h-60"]],
+    ["vm1:V", "r1:2", "green", []],
+    ["vm1:COM", "uno:GND.3", "black", []],
+    ["pot1:VCC", "uno:5V", "red", ["v14"]],
+    ["pot1:GND", "uno:GND.3", "black", ["v44"]],
+    ["pot1:SIG", "uno:A1", "blue", ["v34"]],
+    ["pot1:SIG", "r3:1", "blue", []],
+    ["r3:2", "uno:GND.2", "black", ["v26"]]
+  ],
+  "dependencies": {}
+}

@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    {
+      "type": "wokwi-arduino-uno",
+      "id": "uno",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": -120,
+      "left": 150,
+      "attrs": {
+        "color": "yellow"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r2",
+      "top": -50,
+      "left": 145.65,
+      "rotate": 90,
+      "attrs": {
+        "value": "220"
+      }
+    },
+    {
+      "type": "axion-photoresistor",
+      "id": "ldr1",
+      "top": 280,
+      "left": 170,
+      "attrs": {
+        "lux": "100"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 290,
+      "left": 200.65,
+      "rotate": 90,
+      "attrs": {
+        "value": "10k"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "uno:9",
+      "r2:2",
+      "orange",
+      [
+        "v-12"
+      ]
+    ],
+    [
+      "r2:1",
+      "led1:A",
+      "orange",
+      []
+    ],
+    [
+      "led1:C",
+      "uno:GND.1",
+      "black",
+      [
+        "h-49.5"
+      ]
+    ],
+    [
+      "uno:5V",
+      "ldr1:1",
+      "red",
+      [
+        "v168.5"
+      ]
+    ],
+    [
+      "ldr1:2",
+      "r1:2",
+      "green",
+      [
+        "v6"
+      ]
+    ],
+    [
+      "r1:1",
+      "uno:GND.2",
+      "black",
+      [
+        "v-34"
+      ]
+    ],
+    [
+      "r1:2",
+      "uno:A0",
+      "green",
+      [
+        "h32",
+        "v-104.8"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}

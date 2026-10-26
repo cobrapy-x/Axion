@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    {
+      "type": "wokwi-arduino-uno",
+      "id": "uno",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "axion-inductor",
+      "id": "l1",
+      "top": -67.5,
+      "left": 173,
+      "attrs": {
+        "inductance": "1H",
+        "resistance": "1Ω"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": -65.65,
+      "left": 252,
+      "attrs": {
+        "value": "220"
+      }
+    },
+    {
+      "type": "axion-diode-1n4148",
+      "id": "d1",
+      "top": -107,
+      "left": 115.5,
+      "attrs": {}
+    }
+  ],
+  "connections": [
+    [
+      "uno:8",
+      "l1:1",
+      "orange",
+      []
+    ],
+    [
+      "l1:2",
+      "r1:1",
+      "orange",
+      []
+    ],
+    [
+      "d1:K",
+      "l1:1",
+      "orange",
+      []
+    ],
+    [
+      "r1:2",
+      "d1:A",
+      "black",
+      [
+        "h11.2",
+        "v-70",
+        "h-206.5"
+      ]
+    ],
+    [
+      "d1:A",
+      "uno:GND.1",
+      "black",
+      []
+    ],
+    [
+      "r1:1",
+      "uno:A0",
+      "green",
+      [
+        "v30",
+        "h48",
+        "v258"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}

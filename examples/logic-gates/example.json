@@ -1,0 +1,5 @@
+{
+  "name": "Logic gates: AND, OR, XOR",
+  "description": "Two slide switches feed an AND, an OR and an XOR gate; each gate lights an LED. No microcontroller: click the switches while the simulation runs and compare with the truth tables.",
+  "sketches": {}
+}

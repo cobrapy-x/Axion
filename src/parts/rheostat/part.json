@@ -1,0 +1,14 @@
+{
+  "type": "axion-rheostat",
+  "name": "Rheostat (variable resistor)",
+  "category": "Passive",
+  "description": "A two-terminal variable resistor, like the sliding rheostats in a physics lab: the resistance between 1 and 2 goes from 0 (slider at the left) to its full value (slider at the right). Put it in series with a load to limit the current. Select it and drag the Position slider in the inspector, also while the simulation runs.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "rh",
+  "props": {
+    "position": { "type": "number", "label": "Position", "default": 50, "min": 0, "max": 100, "step": 1, "unit": "%", "live": true },
+    "resistance": { "type": "string", "label": "Full resistance", "default": "10k", "unit": "Ω" }
+  },
+  "tags": ["rheostat", "variable resistor", "resistor"]
+}

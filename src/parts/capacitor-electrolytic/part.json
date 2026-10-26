@@ -2,11 +2,15 @@
   "type": "axion-capacitor-electrolytic",
   "name": "Capacitor (electrolytic)",
   "category": "Passive",
-  "description": "Electrolytic capacitor for larger values (like 100µF), used to steady a power supply. It is polarised: the leg marked '+' goes to the higher voltage, and the stripe marks '−'. Charging is not simulated yet: in Axion it behaves as an open circuit.",
+  "description": "Electrolytic capacitor for larger values (like 100µF), used to steady a power supply or for slow RC timing. It is polarised: the leg marked '+' goes to the higher voltage, and the stripe marks '−'.",
   "version": "1.0.0",
   "license": "Apache-2.0",
   "idPrefix": "c",
   "props": {
-    "capacitance": { "type": "string", "label": "Capacitance", "default": "100µF" }
+    "capacitance": {
+      "type": "string",
+      "label": "Capacitance",
+      "default": "100µF"
+    }
   }
 }
