@@ -279,7 +279,7 @@ export class Workspace {
       top: center.y,
       left: center.x,
       rotate: init?.rotate ?? 0,
-      attrs: { ...(init?.attrs ?? {}) },
+      attrs: { ...(init?.attrs ?? ui?.manifest.newAttrs ?? {}) },
     };
     this.diagram.parts.push(part);
     const node = this.createNode(part);
@@ -396,15 +396,22 @@ export class Workspace {
       return;
     }
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-    for (const n of this.nodes.values()) {
-      for (const c of this.corners(n)) {
-        x0 = Math.min(x0, c.x); y0 = Math.min(y0, c.y);
-        x1 = Math.max(x1, c.x); y1 = Math.max(y1, c.y);
-      }
+    const add = (c: Point) => {
+      x0 = Math.min(x0, c.x); y0 = Math.min(y0, c.y);
+      x1 = Math.max(x1, c.x); y1 = Math.max(y1, c.y);
+    };
+    for (const n of this.nodes.values()) this.corners(n).forEach(add);
+    // Wires too: their bends can reach well outside the parts.
+    for (const c of this.diagram.connections) {
+      if (isImplicit(c)) continue;
+      const a = this.pinPos(c[0]);
+      const b = this.pinPos(c[1]);
+      if (a && b) routeToPoints(a, b, c[3]).forEach(add);
     }
     const pad = 50;
+    const bottom = 50; // extra room for the hint and status bars over the canvas
     const W = this.root.clientWidth || 800;
-    const H = this.root.clientHeight || 600;
+    const H = (this.root.clientHeight || 600) - bottom;
     const z = Math.min(1.6, Math.max(0.25, Math.min((W - 2 * pad) / (x1 - x0 || 1), (H - 2 * pad) / (y1 - y0 || 1))));
     this.view = { z, x: (W - (x1 - x0) * z) / 2 - x0 * z, y: (H - (y1 - y0) * z) / 2 - y0 * z };
     this.applyView();

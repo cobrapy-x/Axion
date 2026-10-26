@@ -18,5 +18,6 @@
     "color": { "type": "select", "label": "Text colour", "default": "black", "options": ["black", "white"] },
     "variant": { "type": "select", "label": "Character set", "default": "A00", "options": ["A00", "A02"] }
   },
+  "newAttrs": { "pins": "i2c" },
   "tags": ["basic"]
 }

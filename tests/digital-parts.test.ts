@@ -428,8 +428,9 @@ describe('digital examples', () => {
       return Number(m[m.length - 1]?.[1]);
     };
     expect(Math.abs(last() - 100)).toBeLessThanOrEqual(1);
-    // ±1 cm at short range. The emulated pulseIn() reads ~0.7 % short (its cycle-counted
-    // loop runs slightly slow in avr8js), so far readings get a 1 % tolerance.
+    // ±1 cm at short range. pulseIn() reads ~0.6 % short, exactly like a real Uno: the
+    // millis() timer interrupt steals cycles from its counting loop (see the next test).
+    // So far readings get a 1 % tolerance.
     for (const cm of [15, 57, 250, 3, 400]) {
       e.input('sonar1', 'prop', { key: 'distance', value: cm });
       out.text = '';
@@ -443,6 +444,21 @@ describe('digital examples', () => {
     out.text = '';
     serialUntil(e, e.time / MS + 400, out);
     expect(out.text).toContain('Out of range');
+  });
+
+  it('pulseIn() is cycle-exact; the ~0.6 % shortfall is the millis() interrupt, as on hardware', () => {
+    const d = JSON.parse(read('examples/ultrasonic-distance/diagram.json')) as Diagram;
+    const e = new Engine(loadPartTypes());
+    e.load(parseDiagram(d), { uno: read('tests/fixtures/pulse-timing.hex') });
+    e.input('sonar1', 'prop', { key: 'distance', value: 400 }); // 400 × 58 µs = 23 200 µs
+    const out = serialUntil(e, 500);
+    const m = /irq=(\d+) noirq=(\d+)/.exec(out);
+    expect(m).not.toBeNull();
+    const [withIrq, noIrq] = [Number(m![1]), Number(m![2])];
+    expect(Math.abs(noIrq - 23_200)).toBeLessThanOrEqual(2);
+    // Timer 0 overflows every 1024 µs; its ISR (~100 cycles of 16 384) is ~0.6 % of the loop.
+    expect(1 - withIrq / 23_200).toBeGreaterThan(0.003);
+    expect(1 - withIrq / 23_200).toBeLessThan(0.01);
   });
 
   it('keypad-lock unlocks with 1234#', () => {

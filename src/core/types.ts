@@ -33,11 +33,29 @@ export interface SourceDrive {
   ohms?: number;
 }
 
-/** Logic thresholds used to turn a net voltage into a Level. */
-export function levelOf(volts: number | null): Level {
+/** Input thresholds of a logic family: at or above `vih` reads HIGH, at or below `vil` reads LOW. */
+export interface LogicThresholds {
+  vih: number;
+  vil: number;
+}
+
+/**
+ * CMOS input thresholds for a supply voltage: VIH = 0.6 × VCC, VIL = 0.3 × VCC (the ATmega
+ * datasheet values; 5 V gives 3.0 V / 1.5 V). Chips with fixed thresholds (e.g. the RP2040's
+ * 2.0 V / 0.8 V) pass their own numbers instead.
+ */
+export function cmosLogic(vcc: number): LogicThresholds {
+  return { vih: 0.6 * vcc, vil: 0.3 * vcc };
+}
+
+/** Default thresholds of 5 V parts. */
+export const LOGIC_5V: LogicThresholds = cmosLogic(VCC);
+
+/** Turns a net voltage into a Level (null = floating or in the undefined band between the thresholds). */
+export function levelOf(volts: number | null, t: LogicThresholds = LOGIC_5V): Level {
   if (volts === null) return null;
-  if (volts >= 3) return 1;
-  if (volts <= 1.5) return 0;
+  if (volts >= t.vih) return 1;
+  if (volts <= t.vil) return 0;
   return null;
 }
 
@@ -104,6 +122,12 @@ export interface PartManifest {
    * (e.g. replaced by a better part).
    */
   hidden?: boolean;
+  /**
+   * Attributes written into a part freshly added from the components panel (and used for its
+   * thumbnail). The file-format defaults in `props` stay Wokwi's, so existing diagrams keep
+   * their meaning; this only picks a friendlier starting point (e.g. the LCD's I²C backpack).
+   */
+  newAttrs?: Record<string, string>;
 }
 
 // ─────────────────────────────── Model (worker) ─────────────────────────
@@ -116,8 +140,13 @@ export interface PartContext {
   readonly props: Props;
   /** Current simulation time in nanoseconds. */
   now(): number;
-  /** Solved level of the net attached to one of this part's pins. */
+  /** Solved level of the net attached to one of this part's pins (using this part's logic thresholds). */
   level(pin: string): Level;
+  /**
+   * Sets the input thresholds this part uses for `level()` and `onPinChange` (default: 5 V CMOS,
+   * see `cmosLogic`). A 3.3 V microcontroller calls `ctx.setLogic(cmosLogic(3.3))` once.
+   */
+  setLogic?(thresholds: LogicThresholds): void;
   /** Solved voltage of the net attached to a pin, or null if floating / shorted. */
   voltage(pin: string): number | null;
   /**

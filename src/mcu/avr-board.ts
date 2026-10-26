@@ -24,6 +24,8 @@ export interface AvrBoardSpec {
   i2c?: I2CPins;
   /** Board pins of the hardware SPI bus. */
   spi?: SPIPins;
+  /** I/O supply voltage (default 5 V). 3.3 V boards (e.g. a Pro Mini 8 MHz) get 3.3 V outputs, thresholds and ADC reference. */
+  vcc?: number;
 }
 
 export function avrBoard(spec: AvrBoardSpec): ModelFactory {
@@ -34,9 +36,10 @@ export function avrBoard(spec: AvrBoardSpec): ModelFactory {
     pins: pins.map((p) => spec.gpio[p]),
     twi: spec.i2c ? { sda: idx(spec.i2c.sda), scl: idx(spec.i2c.scl) } : undefined,
     spi: spec.spi ? { miso: idx(spec.spi.miso) } : undefined,
+    vcc: spec.vcc,
   };
   return mcuBoard(
-    { pins, analog: spec.adc, power: spec.power, ledPin: spec.ledPin, uart: { rx: '0', tx: '1' }, i2c: spec.i2c, spi: spec.spi },
+    { pins, analog: spec.adc, power: spec.power, ledPin: spec.ledPin, uart: { rx: '0', tx: '1' }, i2c: spec.i2c, spi: spec.spi, vcc: spec.vcc },
     { family: 'avr', pins: pins.length, config },
   );
 }

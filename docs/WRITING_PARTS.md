@@ -33,6 +33,7 @@ The model and view never talk to each other directly. The model produces a small
 - `internal`: groups of pins that are always connected inside the part (e.g. both GND pins).
 - `interactive: true`: the user clicks the part while the simulation runs (buttons, switches, pots).
 - `mcu`: only for programmable boards (see `src/parts/arduino-uno/part.json`).
+- `newAttrs`: attributes a part gets when it is added from the components panel (and in its thumbnail). Use it to pick a friendlier starting point without changing the Wokwi defaults in `props`, e.g. the LCD's `{ "pins": "i2c" }`.
 
 ## 2. `model.ts`
 
@@ -50,7 +51,7 @@ A model is a function that receives a `PartContext` and returns any of these opt
 | `input(event, data)` | the user interacted with the view | button press, knob value… |
 | `state()` | ~60×/second | return what the view needs to draw |
 
-Useful context functions: `ctx.voltage(pin)` (volts or `null` if floating), `ctx.level(pin)` (`1`, `0` or `null`), `ctx.props` (values from `part.json` / the inspector), `ctx.now()` (ns).
+Useful context functions: `ctx.voltage(pin)` (volts or `null` if floating), `ctx.level(pin)` (`1`, `0` or `null`; 5 V thresholds unless the part calls `ctx.setLogic(cmosLogic(3.3))`), `ctx.props` (values from `part.json` / the inspector), `ctx.now()` (ns).
 
 **Outputs that depend on inputs need no events.** `drive()` is re-evaluated after every change, so a logic gate is just:
 

@@ -185,7 +185,8 @@ In Chrome (headless, same machine) `two-unos-serial` runs at 100% real-time spee
 2. Register it in `src/mcu/families.ts`: `registerFamily('rp2040', (config, firmware, host) => …)`.
    The config must be structured-cloneable, because it is posted to the MCU worker.
 3. Write the board: a `BoardSpec` (pin names, analog channels, power pins, UART / I²C / SPI pins,
-   and `drives` for other logic levels, e.g. `{ volts: 3.3, ohms: 25 }` for 3.3 V boards) plus a
+   and `vcc: 3.3` for 3.3 V boards, which sets the output drives and input thresholds; `logic`
+   overrides the thresholds with datasheet values) plus a
    descriptor, through `mcuBoard(spec, descriptor)`. The board then works single-threaded and
    multi-core with no further code.
 
@@ -194,7 +195,7 @@ like the AVR. Map `RP2040.gpio[n].addListener` to `host.outputs` (pin drive from
 value and pulls), `setInputValue` to `setInput`, the UART `onByte` / `feedByte` to `uartTx` /
 `uartReceive`, the ADC channel read to `host.analogRead`, and the I²C / SPI peripherals'
 transfer hooks to `host.i2c` / `host.spi`. `runUntil(ns)` steps the core(s) until the cycle count
-reaches `ns × 125 MHz`. Pico boards use `drives` for 3.3 V logic. The second Cortex-M0+ core stays
+reaches `ns × 125 MHz`. Pico boards set `vcc: 3.3` and `logic: { vih: 2, vil: 0.8 }` (RP2040 datasheet). The second Cortex-M0+ core stays
 inside the same runtime, so one Pico is one lane.
 
 **ESP32 via Espressif's QEMU (GPL-2.0, separate process).** The runtime becomes a thin bridge to a

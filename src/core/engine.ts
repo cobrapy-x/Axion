@@ -28,7 +28,7 @@
  */
 import type { Diagram } from './diagram';
 import { splitEndpoint } from './diagram';
-import { VCC, levelOf } from './types';
+import { LOGIC_5V, VCC, levelOf, type LogicThresholds } from './types';
 import type { AnalogElement, Level, ModelFactory, PartContext, PartManifest, PartModel, Peer, Props } from './types';
 import type { McuDescriptor, McuHost, McuRuntime } from '../mcu/runtime';
 import * as K from './analog/constants';
@@ -77,6 +77,8 @@ interface Instance {
   elById: Map<string, El> | null;
   /** Voltage of each of its pins that is on a net. */
   pins: Map<string, PinState>;
+  /** Input thresholds for its levels (`ctx.setLogic`). */
+  logic: LogicThresholds;
 }
 
 interface PinState {
@@ -191,7 +193,7 @@ export class Engine {
         const spec = type?.manifest.props?.[k];
         props[k] = spec?.type === 'number' ? Number(v) : spec?.type === 'boolean' ? v === 'true' || v === '1' : v;
       }
-      const inst: Instance = { id: p.id, manifest: type?.manifest, model: {}, passive: true, els: [], elById: null, pins: new Map() };
+      const inst: Instance = { id: p.id, manifest: type?.manifest, model: {}, passive: true, els: [], elById: null, pins: new Map(), logic: LOGIC_5V };
       this.parts.set(p.id, inst);
       const ctx = this.makeContext(inst, props, firmware[p.id]);
       inst.model = type?.model ? type.model(ctx) : {};
@@ -278,7 +280,7 @@ export class Engine {
 
   /** Level seen on a part's pin (used by tests and tools). */
   level(partId: string, pin: string): Level {
-    return levelOf(this.voltage(partId, pin));
+    return levelOf(this.voltage(partId, pin), this.parts.get(partId)?.logic);
   }
 
   /** Voltage seen on a part's pin (used by tests and tools). */
@@ -299,7 +301,10 @@ export class Engine {
       props,
       firmware,
       now: () => this.timeNs,
-      level: (pin) => levelOf(inst.pins.get(pin)?.v ?? null),
+      level: (pin) => levelOf(inst.pins.get(pin)?.v ?? null, inst.logic),
+      setLogic: (t) => {
+        inst.logic = { vih: t.vih, vil: t.vil };
+      },
       voltage: (pin) => inst.pins.get(pin)?.v ?? null,
       invalidate: (topology = false) => {
         if (topology) this.topoDirty = true;
@@ -775,7 +780,7 @@ export class Engine {
           const same = old === undefined ? false : old === null || v === null ? old === v : Math.abs(old - v) <= EPS;
           if (!same) {
             ps.told = v;
-            changes.push({ inst: p.inst, pin: p.pin, level: levelOf(v) });
+            changes.push({ inst: p.inst, pin: p.pin, level: levelOf(v, p.inst.logic) });
           }
         }
         for (const c of changes) c.inst.model.onPinChange?.(c.pin, c.level);

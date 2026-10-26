@@ -1,6 +1,6 @@
 {
   "name": "axion",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Axion: a lightweight, offline, open-source circuit and microcontroller simulator with pluggable parts.",
   "license": "Apache-2.0",
   "private": true,
@@ -11,6 +11,7 @@
     "start": "vite build && vite preview --port 5173",
     "setup": "node scripts/setup.mjs",
     "test": "vitest run",
+    "check:examples": "node scripts/check-examples.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

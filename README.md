@@ -11,7 +11,7 @@ Wire up Arduinos, LEDs, buttons and more, write your sketch, and run it on your 
 - **Modular parts.** Each part is one folder: `part.json` + `model.ts` (behaviour) + `view.ts` (animation). Drop a folder in and it appears in the palette.
 - **No lock-in.** Axion reads and writes Wokwi-compatible `diagram.json` files.
 
-> Status: early (v0.4). See the [changelog](CHANGELOG.md) and the [roadmap](docs/ARCHITECTURE.md#roadmap).
+> Status: early (v0.4.1). See the [changelog](CHANGELOG.md) and the [roadmap](docs/ARCHITECTURE.md#roadmap).
 
 ## Parts
 
@@ -70,6 +70,7 @@ Other commands:
 
 - `npm start`: optimized build, served locally with the compiler
 - `npm test`: engine and firmware tests (runs in Node, no browser needed)
+- `npm run check:examples`: compiles every example with your arduino-cli, to check your setup (add `-- --write` to refresh the prebuilt `.hex` files)
 
 ## Using the editor
 

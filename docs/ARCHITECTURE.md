@@ -42,7 +42,7 @@ Axion keeps a fast digital path and adds a small **analog solver** only where an
 3. A net with no analog element on it takes the **fast path**: the strong drive wins, else the pulls; two different strong voltages on one net are a **short circuit**. A blinking pin wired to another MCU input never touches a matrix.
 4. Parts describe analog behaviour with `elements()`: resistors, capacitors, inductors, voltage sources, diodes / LEDs (with zener), switches, BJTs and MOSFETs. Nets linked by elements form **clusters**, cut at fixed nets, so a typical cluster has 2–10 nodes (an LED + resistor on a pin is 2). Each cluster is solved with **Modified Nodal Analysis**; diodes and transistors are piecewise linear and iterated until consistent. Only clusters whose inputs changed are re-solved.
 5. **Time**: capacitors and inductors use backward-Euler companion models. A cluster that holds them is stepped by scheduled events (finely right after a change, coarser as it settles) and **stops stepping once settled**, so an idle RC circuit costs nothing. `ctx.current(id)` reads an element's current (LED brightness, overcurrent warnings).
-6. A net with no conductive path to any source is **floating** (`null`): digital inputs read as floating and the voltmeter shows `--`. Logic levels come from voltages: ≥ 3 V is HIGH, ≤ 1.5 V is LOW, in between is undefined.
+6. A net with no conductive path to any source is **floating** (`null`): digital inputs read as floating and the voltmeter shows `--`. Logic levels come from voltages through each part's thresholds: for 5 V parts ≥ 3 V is HIGH, ≤ 1.5 V is LOW, in between is undefined. A 3.3 V board (`vcc: 3.3` in its `BoardSpec`) drives 3.3 V and reads HIGH from 1.98 V (`ctx.setLogic`).
 7. The engine is **event-driven**: it re-solves only when a part reports a change (`invalidate`) or a capacitor / inductor cluster steps. After each solve, parts whose pin voltage changed by more than 10 mV are notified, and the solve repeats until nothing changes. This lets signals ripple through behavioural parts (MCU pin → L298N input → L298N output → motor) without any part needing a clock.
 
 `analogRead()` samples the pin's latest solved voltage at the moment of the conversion, so a potentiometer loaded by a resistor, a voltage divider or a charging capacitor read realistically.
@@ -83,8 +83,9 @@ When a part is dropped so one of its legs is within a few pixels of a hole, the 
 4. ~~More parts: 16×2 LCD (I²C), ultrasonic sensor, photoresistor, relay, diodes, MOSFETs, inductor, keypad, DIP switch, logic gates; voltage dividers and RC / RL timing in the solver~~ ✅ (v0.4)
 5. ~~I²C / SPI transaction links between MCUs and peripherals~~ ✅ (v0.4)
 6. ~~Multi-core: MCUs on their own cores, chip-independent MCU runtime~~ ✅ (v0.4, [MULTICORE.md](MULTICORE.md))
-7. Accuracy pass: DC motor as an electrical load (current, back-EMF, flyback), per-MCU logic thresholds for 3.3 V boards, `pulseIn` timing
-8. Raspberry Pi Pico (rp2040js, MIT): a new `McuRuntime` family, 3.3 V I/O
-9. Tauri desktop app (Windows/macOS/Linux installers built by CI); split the bundle so parts load on demand
-10. ESP32 via Espressif's QEMU (GPL-2.0, run as a separate process behind an `McuRuntime` bridge)
-11. A part registry: install community parts from a Git URL
+7. ~~Accuracy pass, part 1: per-board logic thresholds (3.3 V ready), real-compiler check script, `pulseIn` timing confirmed~~ ✅ (v0.4.1)
+8. Raspberry Pi Pico (rp2040js, MIT): a new `McuRuntime` family, 3.3 V I/O (v0.5)
+9. DC motor as an electrical load (current, back-EMF, flyback)
+10. Tauri desktop app (Windows/macOS/Linux installers built by CI); split the bundle so parts load on demand
+11. ESP32 via Espressif's QEMU (GPL-2.0, run as a separate process behind an `McuRuntime` bridge)
+12. A part registry: install community parts from a Git URL

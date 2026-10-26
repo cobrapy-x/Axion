@@ -50,7 +50,7 @@ function thumbnail(type: string): Promise<Thumb | null> {
       try {
         const wrap = document.createElement('div');
         wrap.className = 'thumb-part';
-        const el = ui.view.create(propsOf({ type, id: `thumb-${type}`, top: 0, left: 0, attrs: {} }, ui));
+        const el = ui.view.create(propsOf({ type, id: `thumb-${type}`, top: 0, left: 0, attrs: { ...ui.manifest.newAttrs } }, ui));
         wrap.append(el);
         thumbHost().append(wrap);
         const lit = el as HTMLElement & { updateComplete?: Promise<unknown> };

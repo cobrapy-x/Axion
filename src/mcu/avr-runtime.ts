@@ -18,6 +18,8 @@ export interface AvrRuntimeConfig {
   twi?: { sda: number; scl: number };
   /** MISO pin of the hardware SPI (an SPI master forces it to be an input). */
   spi?: { miso: number };
+  /** Supply voltage, used as the ADC's AVCC / AREF (default 5 V). */
+  vcc?: number;
 }
 
 /** Bytes waiting for the UART receiver are capped (a sender with no listener must not grow memory forever). */
@@ -75,6 +77,7 @@ export class AvrRuntime implements McuRuntime {
     }
 
     // analogRead(): sample the pin voltage at the moment of the conversion.
+    if (cfg.vcc !== undefined) mcu.adc.avcc = mcu.adc.aref = cfg.vcc;
     const defaultRead = mcu.adc.onADCRead;
     mcu.adc.onADCRead = (input) => {
       if (input.type === ADCMuxInputType.SingleEnded) mcu.adc.channelValues[input.channel] = host.analogRead(input.channel, mcu.timeNs);

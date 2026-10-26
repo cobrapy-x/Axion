@@ -158,9 +158,11 @@ export default create;
 
 ## Limits and future work
 
-- One VCC: `'high'` / `'pullup'` are 5 V and `levelOf()` uses fixed 5 V thresholds (HIGH ≥ 3 V,
-  LOW ≤ 1.5 V). ESP32 / Raspberry Pi Pico boards should drive `{ volts: 3.3, ohms: … }` and will
-  need **per-MCU input thresholds (VIH / VIL)** instead of `levelOf()`.
+- Logic levels are per part: each part turns voltages into levels with its own thresholds,
+  5 V CMOS by default (HIGH ≥ 3 V, LOW ≤ 1.5 V). A board sets `vcc` in its `BoardSpec`: its
+  `'high'` / `'pullup'` drives, input thresholds (`cmosLogic(vcc)`: 0.6 / 0.3 × VCC, or fixed
+  datasheet values through `logic`) and ADC reference follow. Other parts call
+  `ctx.setLogic(…)`. Parts without a supply pin (logic gates, sensors) still assume 5 V.
 - Diodes are piecewise linear (no exponential curve, no temperature); BJTs have no Early effect,
   no reverse-active mode, and VBE is fixed at 0.65 V + 10 Ω; FETs are switches without a linear
   region.

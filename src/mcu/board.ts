@@ -7,7 +7,8 @@
  * cores: then `ctx.attachMcu()` returns a stand-in that mirrors the remote MCU's pins
  * (src/sim/mc-coordinator.ts). Either way this model and the part contract are the same.
  */
-import type { Drive, ModelFactory, PartContext } from '../core/types';
+import { PIN_OHMS, PULL_OHMS } from '../core/analog/constants';
+import { VCC, cmosLogic, type Drive, type LogicThresholds, type ModelFactory, type PartContext } from '../core/types';
 import { I2CController, SPIController, type I2CPins, type SPIPins } from './buses';
 import { createRuntime } from './families';
 import { PIN_HIGH, type I2CBus, type McuDescriptor, type McuHost, type McuRuntime, type SPIBus } from './runtime';
@@ -27,12 +28,22 @@ export interface BoardSpec {
   i2c?: I2CPins;
   /** Board pins of the hardware SPI bus. */
   spi?: SPIPins;
-  /** Net drive for each PinDrive code (z, low, high, pullup, pulldown). Default: 5 V logic. */
+  /** I/O supply voltage (default 5 V): sets the output-high level, pull-ups and input thresholds. */
+  vcc?: number;
+  /** Input thresholds, if the chip's datasheet gives fixed ones (default: CMOS, 0.6 / 0.3 × vcc). */
+  logic?: LogicThresholds;
+  /** Net drive for each PinDrive code (z, low, high, pullup, pulldown). Default: derived from `vcc`. */
   drives?: readonly Drive[];
 }
 
 const LED_FLASH_NS = 30_000_000; // TX/RX LEDs stay lit 30 ms after a byte
 const DRIVES_5V: readonly Drive[] = ['z', 'low', 'high', 'pullup', 'pulldown'];
+
+/** Pin drives of a board running at `vcc`: like 'high' / 'pullup', but at its own supply voltage. */
+export function drivesFor(vcc: number): readonly Drive[] {
+  if (vcc === VCC) return DRIVES_5V;
+  return ['z', 'low', { volts: vcc, ohms: PIN_OHMS }, { volts: vcc, ohms: PULL_OHMS }, 'pulldown'];
+}
 
 function i2cBus(ctx: PartContext, pins: I2CPins): I2CBus {
   const c = new I2CController(ctx, pins);
@@ -54,7 +65,9 @@ function spiBus(ctx: PartContext, pins: SPIPins): SPIBus {
 export function mcuBoard(board: BoardSpec, descriptor: McuDescriptor): ModelFactory {
   const index = new Map(board.pins.map((p, i) => [p, i]));
   const power = new Map(Object.entries(board.power));
-  const table = board.drives ?? DRIVES_5V;
+  const vcc = board.vcc ?? VCC;
+  const table = board.drives ?? drivesFor(vcc);
+  const logic = board.logic ?? cmosLogic(vcc);
   const ledIndex = index.get(board.ledPin ?? '13') ?? -1;
   const rxPin = board.uart?.rx;
   const txPin = board.uart?.tx;
@@ -64,6 +77,7 @@ export function mcuBoard(board: BoardSpec, descriptor: McuDescriptor): ModelFact
     let txUntil = 0;
     let rxUntil = 0;
     let rt: McuRuntime | null = null;
+    ctx.setLogic?.(logic);
 
     if (ctx.firmware) {
       const host: McuHost = {

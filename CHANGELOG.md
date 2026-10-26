@@ -2,6 +2,23 @@
 
 All notable changes to Axion. Versions follow [Semantic Versioning](https://semver.org); before 1.0, any release may change the part contract.
 
+## [0.4.1] - 2026-10-26
+
+### Added
+
+- **Per-board logic levels (3.3 V ready).** Each part now turns voltages into HIGH / LOW with its own input thresholds (`ctx.setLogic`, `cmosLogic(vcc)`). A board sets `vcc` in its `BoardSpec`, and its output-high level, pull-ups, input thresholds and ADC reference follow (3.3 V: HIGH from 1.98 V, LOW below 0.99 V). This prepares for the Raspberry Pi Pico and ESP32.
+- `npm run check:examples`: compiles every example and every board's starter sketch with the real arduino-cli and reports the result. `-- --write` also replaces the prebuilt `.hex` files with the new builds.
+- `newAttrs` in part.json: attributes for a part freshly added from the components panel.
+
+### Changed
+
+- An LCD 16×2 added from the components panel now starts with the I²C backpack (4 pins), the most common module. Wokwi diagrams keep their meaning: a missing `pins` attribute still means the 16-pin parallel interface.
+- **Fit** now includes wire bends, so long wires are no longer cut off.
+
+### Fixed
+
+- `pulseIn()` was listed as "reads 0.7 % short". This is not an emulator bug: with interrupts off, `pulseIn()` is cycle-exact (23 201 µs for a 23 200 µs pulse). The ~0.6 % comes from the `millis()` timer interrupt stealing cycles from the counting loop, which happens the same way on a real Uno. A new test covers both cases.
+
 ## [0.4.0] - 2026-10-26
 
 ### Added
@@ -39,12 +56,12 @@ All notable changes to Axion. Versions follow [Semantic Versioning](https://semv
 ### Known issues
 
 - The DC motor has no electrical model yet, so it draws no current (no flyback in the MOSFET motor example).
-- Logic thresholds are fixed for 5 V; 3.3 V boards will need per-MCU input thresholds.
-- `pulseIn()` reads about 0.7 % short.
-- An LCD added from the panel defaults to the parallel interface; switch it to I²C in the inspector.
+- Logic thresholds are fixed for 5 V; 3.3 V boards will need per-MCU input thresholds. *(Fixed in 0.4.1.)*
+- `pulseIn()` reads about 0.7 % short. *(Not a bug: real Arduinos do the same; see 0.4.1.)*
+- An LCD added from the panel defaults to the parallel interface; switch it to I²C in the inspector. *(Fixed in 0.4.1.)*
 - The P-channel MOSFET is a generic model.
 - MCUs are grouped onto `min(MCUs, cores)` threads, not strictly one worker per MCU.
-- **Fit** ignores wire bends; the main bundle is over 500 KB (Vite prints a warning).
+- **Fit** ignores wire bends *(fixed in 0.4.1)*; the main bundle is over 500 KB (Vite prints a warning).
 
 ## [0.3.0] - 2026-10-25
 
