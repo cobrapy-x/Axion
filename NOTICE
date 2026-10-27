@@ -16,6 +16,28 @@ This product includes software developed by third parties:
 - Lit (https://lit.dev), a dependency of @wokwi/elements
   Copyright (c) Google LLC. BSD 3-Clause License.
 
+- rp2040js (https://github.com/wokwi/rp2040js)
+  Copyright (C) 2021-2026 Uri Shaked. MIT License.
+  Used as the RP2040 (Raspberry Pi Pico) CPU and peripheral emulator.
+
+- RP2040 boot ROM (https://github.com/raspberrypi/pico-bootrom), src/mcu/rp2040-bootrom.ts
+  Copyright (c) 2020 Raspberry Pi (Trading) Ltd. BSD 3-Clause License.
+
+- MicroPython (https://micropython.org), public/firmware/micropython-rpi-pico.bin
+  Copyright (c) 2013-2026 Damien P. George and contributors. MIT License.
+  Built unmodified from v1.29.0 (ports/rp2, BOARD=RPI_PICO). The image also contains the
+  Raspberry Pi Pico SDK (BSD 3-Clause), TinyUSB (MIT) and littlefs (BSD 3-Clause).
+
+Desktop app (src-tauri), additionally:
+
+- Tauri and its plugins localhost and dialog (https://tauri.app)
+  Copyright (c) 2019-2026 Tauri Programme within The Commons Conservancy. MIT or Apache-2.0.
+  The desktop binaries also contain Rust crates under MIT, Apache-2.0, BSD, Zlib and
+  Unicode licences, and a few unmodified MPL-2.0 crates (cssparser, selectors, dtoa-short,
+  option-ext; source on crates.io). The full list is in src-tauri/Cargo.lock.
+  The Linux AppImage includes WebKitGTK and GTK (LGPL-2.1), dynamically linked and unmodified;
+  the .deb / .rpm packages use the system's copies.
+
 Tools invoked as separate programs (not distributed with Axion):
 
 - arduino-cli (https://github.com/arduino/arduino-cli), GPL-3.0.
@@ -27,3 +49,6 @@ Prebuilt example firmware:
   compiled from the Arduino AVR core and its Wire, SPI and Servo libraries
   (https://github.com/arduino), LGPL-2.1. Their sources are available from those
   projects; each example's sketch.ino sits next to its .hex file.
+- The Raspberry Pi Pico .hex files (examples/pico-*, src/parts/pi-pico/template.hex) were
+  compiled with the arduino-pico core 6.3.1 (https://github.com/earlephilhower/arduino-pico,
+  LGPL-2.1), which includes the Pico SDK (BSD 3-Clause) and TinyUSB (MIT).

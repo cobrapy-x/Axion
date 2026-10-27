@@ -165,6 +165,8 @@ export class Engine {
   private events: SimEvent[] = [];
   private timers: Timer[] = [];
   private warnings = new Set<string>();
+  /** Highest current reported per element (see shortWarning). */
+  private peakAmps = new Map<El, { amps: number; msg: string }>();
 
   /** Multi-core executor for the MCUs of the next `load()` (null: everything runs in this thread). */
   offload: McuOffload | null = null;
@@ -183,6 +185,7 @@ export class Engine {
     this.events = [];
     this.timers = [];
     this.warnings.clear();
+    this.peakAmps.clear();
 
     for (const p of diagram.parts) {
       const type = this.types.get(p.type);
@@ -708,8 +711,20 @@ export class Engine {
 
   private shortWarning(el: El, amps: number): void {
     const where = `${el.owner} (${el.pins.join('–')})`;
-    if (!Number.isFinite(amps)) this.warnings.add(`Short circuit: voltage sources fighting through ${where}`);
-    else this.warnings.add(`Short circuit: ${Math.abs(amps) >= 10 ? Math.round(Math.abs(amps)) : Math.abs(amps).toFixed(1)} A through ${where}`);
+    if (!Number.isFinite(amps)) {
+      this.warnings.add(`Short circuit: voltage sources fighting through ${where}`);
+      return;
+    }
+    // One message per element, showing the peak current so far.
+    const peak = this.peakAmps.get(el);
+    if (peak && peak.amps * 1.5 >= Math.abs(amps)) return; // only report a clearly higher peak
+    if (peak) this.warnings.delete(peak.msg);
+    const a = (x: number) => (Math.abs(x) >= 10 ? String(Math.round(Math.abs(x))) : Math.abs(x).toFixed(1));
+    const msg = el.rated
+      ? `Short circuit: ${a(amps)} A through ${where}, far above what it can take (${a(el.maxAmps)} A)`
+      : `Short circuit: ${a(amps)} A through ${where}`;
+    this.peakAmps.set(el, { amps: Math.abs(amps), msg });
+    this.warnings.add(msg);
   }
 
   private netShortWarning(n: number): void {

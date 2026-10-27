@@ -1,0 +1,42 @@
+{
+  "type": "wokwi-pi-pico",
+  "name": "Raspberry Pi Pico",
+  "category": "Microcontrollers",
+  "description": "RP2040 (Cortex-M0+ @ 125 MHz, 264 KB RAM, 2 MB flash), 3.3 V I/O. Code in Arduino C++ (arduino-pico core) or MicroPython. Serial is the USB serial port; Serial1 is GP0/GP1, Serial2 GP8/GP9; Wire on GP4/GP5; SPI on GP16-19; ADC on GP26-28. Emulated by rp2040js (core 0 only).",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "idPrefix": "pico",
+  "internal": [
+    [
+      "GND.1",
+      "GND.2",
+      "GND.3",
+      "GND.4",
+      "GND.5",
+      "GND.6",
+      "GND.7",
+      "AGND"
+    ]
+  ],
+  "props": {
+    "language": {
+      "type": "select",
+      "label": "Code",
+      "default": "arduino",
+      "options": [
+        "arduino",
+        "micropython"
+      ]
+    }
+  },
+  "mcu": {
+    "arch": "rp2040",
+    "fqbn": "rp2040:rp2040:rpipico",
+    "template": "void setup() {\n  pinMode(LED_BUILTIN, OUTPUT);\n  Serial.begin(115200);\n  while (!Serial && millis() < 3000) delay(10);  // wait for the USB serial port\n  Serial.println(\"Hello from the Pico!\");\n}\n\nvoid loop() {\n  digitalWrite(LED_BUILTIN, HIGH);\n  delay(500);\n  digitalWrite(LED_BUILTIN, LOW);\n  delay(500);\n}\n",
+    "micropython": {
+      "firmware": "firmware/micropython-rpi-pico.bin",
+      "template": "from machine import Pin\nimport time\n\nled = Pin(25, Pin.OUT)  # the on-board LED\nprint(\"Hello from MicroPython!\")\n\nwhile True:\n    led.toggle()\n    time.sleep(0.5)\n",
+      "version": "1.29.0"
+    }
+  }
+}

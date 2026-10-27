@@ -1,6 +1,6 @@
 {
   "name": "axion",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Axion: a lightweight, offline, open-source circuit and microcontroller simulator with pluggable parts.",
   "license": "Apache-2.0",
   "private": true,
@@ -12,13 +12,18 @@
     "setup": "node scripts/setup.mjs",
     "test": "vitest run",
     "check:examples": "node scripts/check-examples.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "desktop": "tauri dev",
+    "desktop:build": "tauri build",
+    "tauri": "tauri"
   },
   "dependencies": {
     "@wokwi/elements": "1.9.2",
-    "avr8js": "0.21.1"
+    "avr8js": "0.21.1",
+    "rp2040js": "1.4.1"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "2.12.4",
     "@types/node": "^22.20.5",
     "typescript": "^5.9.3",
     "vite": "8.3.5",

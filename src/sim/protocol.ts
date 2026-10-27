@@ -13,6 +13,6 @@ export type ToWorker =
 export type FromWorker =
   | { type: 'snapshot'; snapshot: Snapshot; speed: number }
   /** The simulation is running; `cores` = threads running microcontrollers in parallel (1 = single-threaded). */
-  | { type: 'started'; cores: number }
+  | { type: 'started'; cores: number; why?: string }
   | { type: 'error'; message: string }
   | { type: 'stopped' };

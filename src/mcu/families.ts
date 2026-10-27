@@ -5,9 +5,13 @@
  * A new family (rp2040js, an out-of-process QEMU bridge…) registers one factory here.
  */
 import { AvrRuntime, type AvrRuntimeConfig } from './avr-runtime';
+import { Rp2040Runtime, type Rp2040RuntimeConfig } from './rp2040-runtime';
 import type { McuDescriptor, McuHost, McuRuntime, RuntimeFactory } from './runtime';
 
-const families = new Map<string, RuntimeFactory>([['avr', (config, firmware, host) => new AvrRuntime(config as AvrRuntimeConfig, firmware, host)]]);
+const families = new Map<string, RuntimeFactory>([
+  ['avr', (config, firmware, host) => new AvrRuntime(config as AvrRuntimeConfig, firmware, host)],
+  ['rp2040', (config, firmware, host) => new Rp2040Runtime(config as Rp2040RuntimeConfig, firmware, host)],
+]);
 
 export function registerFamily(name: string, factory: RuntimeFactory): void {
   families.set(name, factory);

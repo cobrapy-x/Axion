@@ -82,11 +82,16 @@ export interface PropSpec {
 
 export interface McuSpec {
   /** CPU architecture, used to pick the emulator. */
-  arch: 'avr';
+  arch: 'avr' | 'rp2040';
   /** Arduino fully-qualified board name, used by the local compiler. */
   fqbn: string;
   /** Default sketch shown when the part is added. */
   template?: string;
+  /**
+   * The board can also run MicroPython: `firmware` is the interpreter image (a file in public/,
+   * fetched when needed), `template` the starter main.py. Chosen with the board's `language` prop.
+   */
+  micropython?: { firmware: string; template: string; version?: string };
 }
 
 export interface PartManifest {
@@ -240,7 +245,16 @@ export type ModelFactory = (ctx: PartContext) => PartModel;
  *   BJT: into the collector (negative for a conducting PNP) · FET: from drain to source.
  * See docs/SOLVER.md for the models and their accuracy.
  */
-export type AnalogElement =
+export type AnalogElement = AnalogElementKind & {
+  /**
+   * Current (A) above which the solver reports a short circuit through this element (default 1 A).
+   * Parts that legitimately carry more raise it: a motor's armature (stall current), power
+   * transistors and diodes (a surge level well above the rating they check themselves).
+   */
+  maxAmps?: number;
+};
+
+type AnalogElementKind =
   | { kind: 'R'; a: string; b: string; ohms: number; id?: string }
   | { kind: 'C'; a: string; b: string; farads: number; id?: string }
   | { kind: 'L'; a: string; b: string; henries: number; id?: string }

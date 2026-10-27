@@ -4,8 +4,10 @@ import { parseProject, splitEndpoint, type DiagramPart, type Project } from './c
 import { partUIs } from './core/parts-views';
 import { Workspace, propsOf, type Selection } from './editor/workspace';
 import { SimClient } from './sim/client';
-import { addPrebuilt, compile, health } from './ui/compiler';
+import { bytesToBase64, packFirmware } from './mcu/firmware';
+import { addPrebuilt, compile, health, isDesktop, saveFileDesktop, setupCompiler } from './ui/compiler';
 import { ComponentsPanel } from './ui/components-panel';
+import { askConfirm } from './ui/dialog';
 import { examples } from './ui/examples';
 import { hydrateIcons, icon, LOGO_SVG } from './ui/icons';
 import { dropdown } from './ui/menu';
@@ -66,6 +68,14 @@ function persist() {
 }
 
 function download(name: string, text: string) {
+  if (isDesktop) {
+    // The desktop webview has no downloads: save through the native dialog instead.
+    saveFileDesktop(name, text).then(
+      (path) => path && toast(`Saved ${path}`),
+      (err) => toast(`Could not save: ${err instanceof Error ? err.message : String(err)}`, true),
+    );
+    return;
+  }
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   a.download = name;
@@ -82,16 +92,49 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Record<string,
 
 const mcuParts = (): DiagramPart[] => project.diagram.parts.filter((p) => partUIs.get(p.type)?.manifest.mcu);
 
-/** Every MCU gets a sketch; removed MCUs lose theirs. */
+/** MicroPython code is stored next to the board's Arduino sketch, under "<id>:main.py". */
+const PY_KEY = ':main.py';
+
+/** Does this board run MicroPython? Its `language` prop, or Wokwi's `env: "micropython-…"` attribute. */
+function usesPython(p: DiagramPart): boolean {
+  if (!partUIs.get(p.type)?.manifest.mcu?.micropython) return false;
+  const lang = p.attrs?.language;
+  if (lang) return lang === 'micropython';
+  return String(p.attrs?.env ?? '').startsWith('micropython');
+}
+
+const codeKey = (p: DiagramPart) => (usesPython(p) ? p.id + PY_KEY : p.id);
+const mcuById = (id: string | null) => (id ? mcuParts().find((p) => p.id === id) : undefined);
+
+/** Every MCU gets a sketch (or main.py); removed MCUs lose theirs. Code of the other language is kept. */
 function syncSketches() {
   const ids = new Set<string>();
   for (const p of mcuParts()) {
     ids.add(p.id);
-    if (project.sketches[p.id] === undefined) project.sketches[p.id] = partUIs.get(p.type)!.manifest.mcu!.template ?? '';
+    const mcu = partUIs.get(p.type)!.manifest.mcu!;
+    const key = codeKey(p);
+    if (project.sketches[key] === undefined) project.sketches[key] = (key === p.id ? mcu.template : mcu.micropython?.template) ?? '';
   }
-  for (const id of Object.keys(project.sketches)) if (!ids.has(id)) delete project.sketches[id];
+  for (const key of Object.keys(project.sketches)) if (!ids.has(key.replace(PY_KEY, ''))) delete project.sketches[key];
   if (!activeMcu || !ids.has(activeMcu)) activeMcu = [...ids][0] ?? null;
   renderTabs();
+}
+
+/** MicroPython firmware images, fetched once from public/ (they are too big for the bundle). */
+const pythonImages = new Map<string, Promise<string>>();
+function micropythonImage(path: string): Promise<string> {
+  let p = pythonImages.get(path);
+  if (!p) {
+    p = fetch(import.meta.env.BASE_URL + path)
+      .then((r) => {
+        if (!r.ok) throw new Error(`${path}: HTTP ${r.status}`);
+        return r.arrayBuffer();
+      })
+      .then((buf) => 'bin:' + bytesToBase64(new Uint8Array(buf)));
+    p.catch(() => pythonImages.delete(path));
+    pythonImages.set(path, p);
+  }
+  return p;
 }
 
 // ───────────────────────────── project loading ─────────────────────────────
@@ -110,7 +153,8 @@ async function loadProject(p: Project) {
   updateToolbar();
 }
 
-const confirmDiscard = () => project.diagram.parts.length === 0 || confirm('Replace the current circuit? (Use Save first to keep it.)');
+const confirmDiscard = async () =>
+  project.diagram.parts.length === 0 || (await askConfirm('Replace the current circuit? Use Save first to keep it.', 'Replace'));
 
 // ───────────────────────────── toolbar ─────────────────────────────
 
@@ -243,7 +287,11 @@ function initFileMenu() {
     b.dataset.example = ex.key;
     if (ex.description) b.append(el('small', {}, ex.description));
     b.onclick = () => {
-      if (confirmDiscard()) void loadProject(ex.project).then(() => toast(`Loaded example: ${ex.name}`));
+      void confirmDiscard().then(async (yes) => {
+        if (!yes) return;
+        await loadProject(ex.project);
+        toast(`Loaded example: ${ex.name}`);
+      });
     };
     list.append(b);
     for (const [mcu, hex] of Object.entries(ex.prebuilt)) {
@@ -260,8 +308,8 @@ function initFileMenu() {
   if (!examples.length) list.append(el('div', { className: 'menu-empty' }, 'No examples found'));
   dropdown($('btn-file'), $('file-menu'));
 
-  $('btn-new').onclick = () => {
-    if (!confirmDiscard()) return;
+  $('btn-new').onclick = async () => {
+    if (!(await confirmDiscard())) return;
     void loadProject({ format: 'axion-project', version: 1, name: 'Untitled', diagram: { version: 1, editor: 'axion', parts: [], connections: [] }, sketches: {} });
   };
   const fileInput = $<HTMLInputElement>('file-open');
@@ -466,6 +514,12 @@ function renderInspector(sel: Selection) {
       input.value = String(props[key]);
       input.onchange = () => {
         workspace.setPartAttr(part.id, key, input.value);
+        if (m?.mcu && key === 'language') {
+          // Arduino ⇄ MicroPython: show the other file (each language keeps its own code).
+          activeMcu = part.id;
+          syncSketches();
+          persist();
+        }
         if (spec.live && workspace.running) {
           sim.input(part.id, 'prop', { key, value: spec.type === 'number' ? Number(input.value) : input.value });
         }
@@ -539,14 +593,16 @@ function renderTabs() {
   const mcus = mcuParts();
   if (!mcus.length) tabs.append(el('span', { className: 'empty' }, 'Add a microcontroller to write code'));
   for (const p of mcus) {
-    const b = el('button', { className: 'tab', textContent: `${p.id}.ino`, onclick: () => setActiveMcu(p.id) });
+    const b = el('button', { className: 'tab', textContent: usesPython(p) ? `${p.id}/main.py` : `${p.id}.ino`, onclick: () => setActiveMcu(p.id) });
     b.setAttribute('role', 'tab');
     b.setAttribute('aria-selected', String(p.id === activeMcu));
     b.classList.toggle('active', p.id === activeMcu);
     tabs.append(b);
   }
-  code.disabled = !activeMcu;
-  code.value = activeMcu ? project.sketches[activeMcu] ?? '' : '';
+  const active = mcuById(activeMcu);
+  code.disabled = !active;
+  code.value = active ? project.sketches[codeKey(active)] ?? '' : '';
+  code.dataset.lang = active && usesPython(active) ? 'python' : 'cpp';
   updateGutter();
   const override = !!(activeMcu && hexOverride[activeMcu]);
   $('fw-badge').hidden = !override;
@@ -571,8 +627,9 @@ function renderSerial() {
 
 function initEditor() {
   code.addEventListener('input', () => {
-    if (!activeMcu) return;
-    project.sketches[activeMcu] = code.value;
+    const active = mcuById(activeMcu);
+    if (!active) return;
+    project.sketches[codeKey(active)] = code.value;
     updateGutter();
     persist();
   });
@@ -580,7 +637,7 @@ function initEditor() {
   code.addEventListener('keydown', (e) => {
     if (e.key === 'Tab' && !e.shiftKey) {
       e.preventDefault();
-      document.execCommand('insertText', false, '  ');
+      document.execCommand('insertText', false, code.dataset.lang === 'python' ? '    ' : '  ');
     }
   });
 
@@ -602,9 +659,14 @@ function initEditor() {
     const f = hexInput.files?.[0];
     hexInput.value = '';
     if (!f || !activeMcu) return;
-    const text = await f.text();
-    if (!text.trimStart().startsWith(':')) return toast('That does not look like an Intel HEX file', true);
-    hexOverride[activeMcu] = text;
+    let fw: string;
+    if (/\.(uf2|bin)$/i.test(f.name)) {
+      fw = `${f.name.slice(-3).toLowerCase()}:${bytesToBase64(new Uint8Array(await f.arrayBuffer()))}`;
+    } else {
+      fw = await f.text();
+      if (!fw.trimStart().startsWith(':')) return toast('That does not look like an Intel HEX file', true);
+    }
+    hexOverride[activeMcu] = fw;
     renderTabs();
     toast(`${activeMcu} will run ${f.name}`);
   };
@@ -636,16 +698,32 @@ async function run() {
         logs.push(`── ${p.id}: using loaded .hex`);
         continue;
       }
-      const fqbn = partUIs.get(p.type)!.manifest.mcu!.fqbn;
+      const mcu = partUIs.get(p.type)!.manifest.mcu!;
+      if (usesPython(p) && mcu.micropython) {
+        // MicroPython: no compiler. The interpreter image runs the code through its REPL.
+        simStatus.textContent = `Loading MicroPython for ${p.id}…`;
+        try {
+          const image = await micropythonImage(mcu.micropython.firmware);
+          firmware[p.id] = packFirmware({ image, python: project.sketches[codeKey(p)] ?? '' });
+          logs.push(`── ${p.id}: MicroPython ${mcu.micropython.version ?? ''} (no compiling needed)`);
+        } catch (err) {
+          setLog(`── ${p.id}: could not load the MicroPython firmware\n${err instanceof Error ? err.message : err}`, true);
+          simStatus.textContent = 'Stopped';
+          toast(`Could not load MicroPython for ${p.id}.`, true);
+          return;
+        }
+        continue;
+      }
+      const fqbn = mcu.fqbn;
       simStatus.textContent = `Compiling ${p.id}…`;
       const r = await compile(fqbn, project.sketches[p.id] ?? '');
       logs.push(`── ${p.id} (${fqbn})\n${r.log.trim()}`);
       if (!r.ok || !r.hex) {
         setLog(logs.join('\n\n'), true);
         simStatus.textContent = 'Compile failed';
-        if (/was not found|not reachable|no compiler service/i.test(r.log)) {
+        if (/was not found|not reachable|no compiler service|platform not installed|not found in any known index/i.test(r.log)) {
           toast(
-            `${p.id}'s code needs the Arduino compiler, which isn't installed yet. Install it once: "brew install arduino-cli", then "npm run setup". Examples and unchanged starter sketches run without it.`,
+            `${p.id}'s code needs the Arduino compiler, which isn't installed yet. Install arduino-cli once (macOS: "brew install arduino-cli"), then ${SETUP_HINT}. Examples, unchanged starter sketches and MicroPython run without it.`,
             true,
           );
         } else {
@@ -702,34 +780,53 @@ sim.onSnapshot = (snap, speed) => {
   }
   simStatus.textContent = `${(snap.timeNs / 1e9).toFixed(2)} s · ${Math.round(speed * 100)}% speed · ${simCores} ${simCores === 1 ? 'core' : 'cores'}`;
 };
-sim.onStarted = (cores) => {
+sim.onStarted = (cores, why) => {
   simCores = cores;
   simStatus.title =
     cores > 1
       ? `Microcontrollers run in parallel on ${cores} CPU cores.`
-      : 'The simulation runs on one CPU core (one microcontroller, or multi-core not available in this browser).';
+      : why
+        ? `The simulation runs on one CPU core: ${why}.`
+        : 'The simulation runs on one CPU core (one microcontroller).';
 };
 sim.onError = (msg) => {
   stop();
   toast(`Simulation error: ${msg}`, true);
 };
 
+/** What to run once to get the compiler ready: a terminal command, or a click in the desktop app. */
+const SETUP_HINT = isDesktop ? 'click this badge to download the Arduino cores (one time)' : 'run "npm run setup"';
+
 async function checkCompiler() {
   const pill = $('compiler-status');
   const h = await health();
   pill.className = 'pill ' + (h?.ready ? 'ok' : 'warn');
+  pill.onclick = null;
+  pill.style.cursor = '';
   if (!h) {
     pill.textContent = 'Compiler: unavailable';
     pill.title = 'No local compile service. Run Axion with "npm run dev" or "npm start". Examples and .hex files still work.';
   } else if (!h.arduinoCli) {
     pill.textContent = 'Compiler: arduino-cli missing';
-    pill.title = 'Install arduino-cli, then run "npm run setup". Examples and .hex files still work.';
+    pill.title = `Install arduino-cli (see README), then ${SETUP_HINT}. Examples and MicroPython still work.`;
   } else if (!h.ready) {
-    pill.textContent = 'Compiler: AVR core missing';
-    pill.title = 'Run "npm run setup" to install the Arduino AVR core (one-time download).';
+    pill.textContent = 'Compiler: cores missing';
+    pill.title = `To compile Arduino code, ${SETUP_HINT}.`;
+    if (isDesktop) {
+      pill.style.cursor = 'pointer';
+      pill.onclick = async () => {
+        if (!(await askConfirm('Download the Arduino AVR and Raspberry Pi Pico cores now? This is a one-time download of a few hundred MB.', 'Download'))) return;
+        pill.textContent = 'Compiler: installing…';
+        const r = await setupCompiler(true);
+        setLog(r.log, !r.ok);
+        toast(r.ok ? 'Compiler ready.' : 'Setup failed. See "Compiler output" in Code.', !r.ok);
+        void checkCompiler();
+      };
+    }
   } else {
+    const pico = h.cores.includes('rp2040:rp2040');
     pill.textContent = 'Compiler: ready';
-    pill.title = h.arduinoCli;
+    pill.title = `${h.arduinoCli}${pico ? '' : `\nRaspberry Pi Pico core not installed: ${SETUP_HINT}.`}`;
   }
 }
 

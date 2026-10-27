@@ -99,10 +99,10 @@
               <textarea id="code" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Sketch"></textarea>
             </div>
             <div class="editor-bar">
-              <button class="btn small" id="btn-load-hex" data-icon="upload" data-icon-size="15" title="Run a prebuilt .hex file instead of compiling">Load .hex</button>
+              <button class="btn small" id="btn-load-hex" data-icon="upload" data-icon-size="15" title="Run a prebuilt firmware file (.hex, or .uf2 / .bin for the Pico) instead of compiling">Load .hex</button>
               <button class="btn small" id="btn-clear-hex" hidden>Use sketch</button>
               <span id="fw-badge" class="pill" hidden>Using loaded .hex</span>
-              <input id="file-hex" type="file" accept=".hex" hidden />
+              <input id="file-hex" type="file" accept=".hex,.uf2,.bin" hidden />
             </div>
             <details class="log" id="log-box">
               <summary>Compiler output</summary>

@@ -23,8 +23,11 @@ Cross-origin isolation needs two response headers, which `vite.config.ts` sets o
 preview servers: `Cross-Origin-Opener-Policy: same-origin` and
 `Cross-Origin-Embedder-Policy: require-corp`. Axion loads nothing from other origins (icons are
 inline SVG, the favicon is a `data:` URI, fonts are system fonts), so `require-corp` costs nothing.
-Any other host (the Tauri app, a static server) must send the same headers, or Axion silently
-runs on one core.
+Any other host (a static server) must send the same headers, or Axion runs on one core; hover
+the status line to see why. The desktop app serves its pages from `http://127.0.0.1:47819`
+(tauri-plugin-localhost) with these headers, because webviews do not isolate the default
+`tauri://` scheme. On Linux, WebKitGTK still does not provide `SharedArrayBuffer`, so the Linux
+desktop app runs on one core; macOS (WebKit) and Windows (WebView2) use all cores.
 
 ## Architecture
 
@@ -190,13 +193,15 @@ In Chrome (headless, same machine) `two-unos-serial` runs at 100% real-time spee
    descriptor, through `mcuBoard(spec, descriptor)`. The board then works single-threaded and
    multi-core with no further code.
 
-**Raspberry Pi Pico (rp2040js, MIT).** A JS emulator, so it plugs in directly and runs in a worker
-like the AVR. Map `RP2040.gpio[n].addListener` to `host.outputs` (pin drive from output enable,
-value and pulls), `setInputValue` to `setInput`, the UART `onByte` / `feedByte` to `uartTx` /
-`uartReceive`, the ADC channel read to `host.analogRead`, and the I²C / SPI peripherals'
-transfer hooks to `host.i2c` / `host.spi`. `runUntil(ns)` steps the core(s) until the cycle count
-reaches `ns × 125 MHz`. Pico boards set `vcc: 3.3` and `logic: { vih: 2, vil: 0.8 }` (RP2040 datasheet). The second Cortex-M0+ core stays
-inside the same runtime, so one Pico is one lane.
+**Raspberry Pi Pico (rp2040js, MIT)**, done in v0.5 (`src/mcu/rp2040-runtime.ts`). A JS emulator,
+so it runs in a worker like the AVR. GPIO listeners mark the pins dirty and drives are
+recomputed from each pin's function select and pulls; UART0/1 are ports 0/1 and the USB serial
+(CDC, the runtime plays the USB host) is port 2; I²C0 / SPI0 complete each step synchronously
+through `host.i2c` / `host.spi`; ADC channels 0–3 call `host.analogRead`; SIO `GPIO_IN` reads
+call `host.syncInputs`. `runUntil(ns)` executes instructions at `clk_sys` and skips ahead to the
+next timer alarm while the core sleeps (WFI/WFE), so an idle Pico costs little. The board sets
+`vcc: 3.3`, `logic: { vih: 2, vil: 0.8 }` and `console: 2`. rp2040js emulates core 0 only.
+UART input bytes cross to workers with their port number (`rx` holds `(port << 8) | byte`).
 
 **ESP32 via Espressif's QEMU (GPL-2.0, separate process).** The runtime becomes a thin bridge to a
 native QEMU process. It must never be linked into Axion. In the Tauri app a sidecar starts QEMU,

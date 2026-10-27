@@ -96,6 +96,10 @@ export class El {
 
   /** Results: current (see AnalogElement), BJT base current. */
   amps = 0;
+  /** Above this current the element is reported (see AnalogElement.maxAmps). */
+  readonly maxAmps: number;
+  /** maxAmps is a rating given by the part (report "overcurrent", not "short circuit"). */
+  readonly rated: boolean;
   ib = 0;
   cluster: Cluster | null = null;
 
@@ -106,6 +110,9 @@ export class El {
     this.kind = KIND[e.kind];
     this.pins = terminals(e);
     this.id = e.id;
+    const max = e.maxAmps;
+    this.rated = typeof max === 'number' && max > 0;
+    this.maxAmps = this.rated ? max! : K.SHORT_AMPS;
     this.setValues(e);
   }
 
@@ -701,7 +708,7 @@ export class Cluster {
       nets.volts[net] = nets.short[net] ? NaN : v;
     }
     for (const el of this.els) {
-      if (el.kind !== C && Math.abs(el.amps) > K.SHORT_AMPS) this.onShort(el, el.amps);
+      if (el.kind !== C && Math.abs(el.amps) > el.maxAmps) this.onShort(el, el.amps);
     }
   }
 

@@ -1,7 +1,10 @@
 name: CI
+
+# Type-check, test and build on every push and pull request.
 on:
   push:
   pull_request:
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -15,3 +18,18 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npx vite build
+
+  desktop:
+    # The Tauri (Rust) side: compiles and runs its unit tests on Linux.
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Linux libraries for Tauri
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: mkdir -p dist && cargo test --manifest-path src-tauri/Cargo.toml

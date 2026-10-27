@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    {
+      "type": "wokwi-pi-pico",
+      "id": "pico",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": 150,
+      "left": 250,
+      "attrs": {
+        "color": "red"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 120,
+      "left": 168,
+      "rotate": 90,
+      "attrs": {
+        "value": "220"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn1",
+      "top": 130,
+      "left": 108,
+      "attrs": {
+        "color": "green"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "pico:GP15",
+      "r1:1",
+      "orange",
+      []
+    ],
+    [
+      "r1:2",
+      "led1:A",
+      "orange",
+      []
+    ],
+    [
+      "led1:C",
+      "pico:GND.4",
+      "black",
+      [
+        "v20",
+        "h-60"
+      ]
+    ],
+    [
+      "pico:GP14",
+      "btn1:1.r",
+      "green",
+      []
+    ],
+    [
+      "btn1:2.l",
+      "pico:GND.3",
+      "black",
+      [
+        "h-10",
+        "v-60",
+        "h30"
+      ]
+    ]
+  ]
+}

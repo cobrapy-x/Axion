@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    {
+      "type": "wokwi-pi-pico",
+      "id": "pico",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd1",
+      "top": 130,
+      "left": 150,
+      "attrs": {
+        "pins": "i2c"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "pico:GND.2",
+      "lcd1:GND",
+      "black",
+      [
+        "v89.4"
+      ]
+    ],
+    [
+      "pico:VBUS",
+      "lcd1:VCC",
+      "red",
+      [
+        "v-20",
+        "h-25",
+        "v186.6"
+      ]
+    ],
+    [
+      "pico:GP4",
+      "lcd1:SDA",
+      "blue",
+      [
+        "v109.4"
+      ]
+    ],
+    [
+      "pico:GP5",
+      "lcd1:SCL",
+      "purple",
+      [
+        "v119"
+      ]
+    ]
+  ]
+}

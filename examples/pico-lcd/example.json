@@ -1,0 +1,5 @@
+{
+  "name": "Pico: LCD 16×2 (I²C)",
+  "description": "Raspberry Pi Pico in Arduino C++: an I²C LCD on GP4 (SDA) / GP5 (SCL) shows a greeting and the uptime. Uses only Wire.",
+  "sketches": { "pico": "sketch.ino" }
+}

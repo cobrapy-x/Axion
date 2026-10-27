@@ -17,6 +17,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Plugin } from 'vite';
+import { binToHex } from '../src/mcu/intelhex';
 
 const CLI = process.env.ARDUINO_CLI || 'arduino-cli';
 const CACHE_DIR = process.env.AXION_CACHE || join(homedir(), '.axion', 'cache');
@@ -91,12 +92,26 @@ async function doCompile({ fqbn, files }: CompileRequest): Promise<CompileResult
       return { ok: false, log: `${r.out}\nInstall arduino-cli and run "npm run setup" (see README).` };
     }
     if (r.code !== 0) return { ok: false, log: r.out };
-    const hex = await readFile(join(outDir, 'sketch.ino.hex'), 'utf8');
+    const hex = await firmwareHex(fqbn, outDir);
     await mkdir(CACHE_DIR, { recursive: true });
     await writeFile(cached, hex);
     return { ok: true, hex, log: r.out };
   } finally {
     await rm(work, { recursive: true, force: true });
+  }
+}
+
+/** Flash base address of boards whose toolchain writes a raw .bin instead of a .hex. */
+const BIN_BASE: Record<string, number> = { rp2040: 0x10000000 };
+
+/** The build as Intel HEX: AVR builds have one; RP2040 builds have a .bin (and .uf2) we convert. */
+async function firmwareHex(fqbn: string, outDir: string): Promise<string> {
+  try {
+    return await readFile(join(outDir, 'sketch.ino.hex'), 'utf8');
+  } catch {
+    const base = BIN_BASE[fqbn.split(':')[1]];
+    if (base === undefined) throw new Error('The compiler produced no .hex file');
+    return binToHex(new Uint8Array(await readFile(join(outDir, 'sketch.ino.bin'))), base);
   }
 }
 

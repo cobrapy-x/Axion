@@ -26,6 +26,26 @@ try {
 
 const readJson = (p) => JSON.parse(readFileSync(p, 'utf8'));
 
+/** Same as src/mcu/intelhex.ts binToHex: 16-byte records with extended linear addresses. */
+function binToHex(data, base) {
+  const h = (n) => n.toString(16).toUpperCase().padStart(2, '0');
+  const rec = (type, addr, bytes) => {
+    let sum = bytes.length + ((addr >> 8) & 0xff) + (addr & 0xff) + type;
+    let line = ':' + h(bytes.length) + h((addr >> 8) & 0xff) + h(addr & 0xff) + h(type);
+    for (const b of bytes) (sum += b), (line += h(b));
+    return line + h((0x100 - (sum & 0xff)) & 0xff);
+  };
+  const lines = [];
+  let upper = -1;
+  for (let off = 0; off < data.length; off += 16) {
+    const addr = base + off;
+    const hi = Math.floor(addr / 0x10000) & 0xffff;
+    if (hi !== upper) lines.push(rec(4, 0, [hi >> 8, (upper = hi) & 0xff]));
+    lines.push(rec(0, addr & 0xffff, [...data.subarray(off, off + 16)]));
+  }
+  return lines.join('\n') + '\n:00000001FF\n';
+}
+
 /** Part type → part.json, for every part folder. */
 const parts = new Map();
 for (const dir of readdirSync(join(root, 'src/parts'))) {
@@ -49,6 +69,7 @@ for (const name of readdirSync(join(root, 'examples')).sort()) {
   }
   const diagram = readJson(join(dir, 'diagram.json'));
   for (const [id, file] of Object.entries(meta.sketches ?? {})) {
+    if (file.endsWith('.py')) continue; // MicroPython: nothing to compile
     const type = diagram.parts.find((p) => p.id === id)?.type;
     const fqbn = parts.get(type)?.mcu?.fqbn;
     if (!fqbn) {
@@ -86,7 +107,14 @@ for (const job of jobs) {
   }
   const size = /Sketch uses (\d+) bytes/.exec(r.stdout)?.[1];
   console.log(`ok    ${job.label}${size ? `  (${size} bytes)` : ''}`);
-  if (write) copyFileSync(join(outDir, 'sketch.ino.hex'), job.hex);
+  if (write) {
+    // AVR builds have a .hex; RP2040 builds have a .bin, stored as Intel HEX at the flash address.
+    try {
+      copyFileSync(join(outDir, 'sketch.ino.hex'), job.hex);
+    } catch {
+      writeFileSync(job.hex, binToHex(readFileSync(join(outDir, 'sketch.ino.bin')), 0x10000000));
+    }
+  }
 }
 rmSync(work, { recursive: true, force: true });
 

@@ -11,6 +11,8 @@ import { PIN_OHMS, PULL_OHMS } from '../core/analog/constants';
 import { VCC, cmosLogic, type Drive, type LogicThresholds, type ModelFactory, type PartContext } from '../core/types';
 import { I2CController, SPIController, type I2CPins, type SPIPins } from './buses';
 import { createRuntime } from './families';
+import { unpackFirmware } from './firmware';
+import { MicroPythonRunner } from './micropython';
 import { PIN_HIGH, type I2CBus, type McuDescriptor, type McuHost, type McuRuntime, type SPIBus } from './runtime';
 
 export interface BoardSpec {
@@ -22,8 +24,12 @@ export interface BoardSpec {
   power: Record<string, Drive>;
   /** Pin with the "L" LED (default "13"). */
   ledPin?: string;
-  /** Pins of UART 0 (Serial). */
+  /** Pins of UART 0 (Serial on AVR boards). */
   uart?: { rx: string; tx: string };
+  /** Pins of further UART ports (index = runtime port; entry 0 overrides `uart`). */
+  uarts?: Array<{ rx: string; tx: string } | undefined>;
+  /** Runtime port shown in the serial monitor (default 0; the Pico's USB serial is port 2). */
+  console?: number;
   /** Board pins of the I²C bus. Header aliases join via part.json `internal`. */
   i2c?: I2CPins;
   /** Board pins of the hardware SPI bus. */
@@ -69,27 +75,32 @@ export function mcuBoard(board: BoardSpec, descriptor: McuDescriptor): ModelFact
   const table = board.drives ?? drivesFor(vcc);
   const logic = board.logic ?? cmosLogic(vcc);
   const ledIndex = index.get(board.ledPin ?? '13') ?? -1;
-  const rxPin = board.uart?.rx;
-  const txPin = board.uart?.tx;
+  const uarts = board.uarts ? [...board.uarts] : [];
+  if (board.uart && !uarts[0]) uarts[0] = board.uart;
+  const rxPort = new Map(uarts.flatMap((u, port) => (u ? [[u.rx, port] as const] : [])));
+  const consolePort = board.console ?? 0;
 
   return (ctx) => {
     let serialOut = '';
     let txUntil = 0;
     let rxUntil = 0;
     let rt: McuRuntime | null = null;
+    let python: MicroPythonRunner | null = null;
     ctx.setLogic?.(logic);
 
     if (ctx.firmware) {
+      const code = unpackFirmware(ctx.firmware).python;
       const host: McuHost = {
         outputs(t) {
           ctx.advanceTime(t);
           ctx.invalidate();
         },
-        uartTx(_port, byte, t) {
-          serialOut += String.fromCharCode(byte);
+        uartTx(port, byte, t) {
           txUntil = t + LED_FLASH_NS;
           ctx.advanceTime(t);
-          if (txPin) ctx.sendData(txPin, 'uart', byte); // TX pin → whatever is wired to it
+          if (port === consolePort) serialOut += python ? python.output(byte) : String.fromCharCode(byte);
+          const tx = uarts[port]?.tx;
+          if (tx) ctx.sendData(tx, 'uart', byte); // TX pin → whatever is wired to it
         },
         uartRx(_port, _byte, t) {
           rxUntil = t + LED_FLASH_NS;
@@ -102,6 +113,13 @@ export function mcuBoard(board: BoardSpec, descriptor: McuDescriptor): ModelFact
         spi: board.spi ? spiBus(ctx, board.spi) : undefined,
       };
       rt = ctx.attachMcu?.(descriptor, host) ?? createRuntime(descriptor, ctx.firmware, host);
+      if (code !== undefined) {
+        const runtime = rt;
+        python = new MicroPythonRunner(code, (bytes) => {
+          for (let i = 0; i < bytes.length; i++) runtime.uartReceive(consolePort, bytes.charCodeAt(i));
+        });
+        python.start();
+      }
     }
 
     return {
@@ -118,7 +136,8 @@ export function mcuBoard(board: BoardSpec, descriptor: McuDescriptor): ModelFact
       },
 
       onData(pin, channel, value) {
-        if (rt && pin === rxPin && channel === 'uart') rt.uartReceive(0, value);
+        const port = rxPort.get(pin);
+        if (rt && port !== undefined && channel === 'uart') rt.uartReceive(port, value);
       },
 
       step(timeNs) {
@@ -127,7 +146,8 @@ export function mcuBoard(board: BoardSpec, descriptor: McuDescriptor): ModelFact
 
       input(event, data) {
         if (rt && event === 'serial' && typeof data === 'string') {
-          for (const ch of data) rt.uartReceive(0, ch.charCodeAt(0) & 0xff);
+          const bytes = python ? python.input(data) : data;
+          for (let i = 0; i < bytes.length; i++) rt.uartReceive(consolePort, bytes.charCodeAt(i) & 0xff);
         }
       },
 

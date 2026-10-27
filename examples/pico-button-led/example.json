@@ -1,0 +1,5 @@
+{
+  "name": "Pico: button and LED",
+  "description": "Raspberry Pi Pico in Arduino C++: a button on GP14 toggles an LED on GP15 and prints the count on the USB serial port.",
+  "sketches": { "pico": "sketch.ino" }
+}

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { ModelFactory } from '../../core/types';
-import { MotorPhysics, across } from '../../physics/motor';
+import { ElectricMotor, across, motorDriver } from '../../physics/motor';
 
 /**
  * DC motor + quadrature encoder. The encoder position is checked every simulation
@@ -10,7 +10,16 @@ import { MotorPhysics, across } from '../../physics/motor';
  * Quadrature sequence (forward): AB = 00 → 10 → 11 → 01 → 00 …
  */
 const create: ModelFactory = (ctx) => {
-  const motor = new MotorPhysics({ rpm: Number(ctx.props.rpm), ratedVoltage: Number(ctx.props.ratedVoltage) }, ctx.now());
+  const motor = new ElectricMotor(
+    {
+      rpm: Number(ctx.props.rpm),
+      ratedVoltage: Number(ctx.props.ratedVoltage),
+      stallCurrent: Number(ctx.props.stallCurrent),
+      noLoadCurrent: Number(ctx.props.noLoadCurrent),
+    },
+    ctx.now(),
+  );
+  const drv = motorDriver(motor, ctx);
   const countsPerDeg = (Math.max(1, Number(ctx.props.ppr) || 1) * 4) / 360;
   let count = 0;
   let a = false;
@@ -27,8 +36,9 @@ const create: ModelFactory = (ctx) => {
       if (!powered()) return 'z';
       return (pin === 'A' ? a : b) ? 'high' : 'low';
     },
-    onPinChange(pin) {
-      if (pin === '+' || pin === '-') motor.setVoltage(across(ctx.voltage('+'), ctx.voltage('-')), ctx.now());
+    elements: drv.elements,
+    onPinChange() {
+      drv.solved();
     },
     step(timeNs) {
       motor.advance(timeNs);
@@ -47,7 +57,7 @@ const create: ModelFactory = (ctx) => {
     },
     state() {
       motor.advance(ctx.now());
-      return { angle: motor.angle % 360, rpm: Math.round(motor.rpm), a, b };
+      return { angle: motor.angle % 360, rpm: Math.round(motor.rpm), amps: Math.round(motor.amps * 1000) / 1000, a, b };
     },
   };
 };

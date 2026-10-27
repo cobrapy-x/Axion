@@ -139,9 +139,9 @@ class RemoteRuntime implements McuRuntime {
     return this.drives[pin] as PinDrive;
   }
 
-  uartReceive(_port: number, byte: number): void {
+  uartReceive(port: number, byte: number): void {
     if (this.rx.length >= 4096) return;
-    this.rx.push(byte & 0xff);
+    this.rx.push(((port & 0xff) << 8) | (byte & 0xff));
     this.changed = true;
   }
 }

@@ -11,6 +11,12 @@ const ON_AMPS = 1e-6;
 const mA = (amps: number) => Math.round(amps * 1e4) / 10;
 
 /** Warns once when |current| goes above `max` amps. */
+/**
+ * Semiconductors check their own continuous rating (below); the solver's generic short-circuit
+ * report only fires far above it, at a surge level.
+ */
+const SURGE = 10;
+
 function overcurrent(ctx: PartContext, label: string, max: number): (amps: number) => void {
   let warned = false;
   return (amps) => {
@@ -41,7 +47,7 @@ export function diodeModel(spec: DiodeSpec): ModelFactory {
   return (ctx) => {
     const zener = Number(ctx.props.voltage);
     const breakdown = zener > 0 ? zener : spec.breakdown;
-    const d: AnalogElement = { kind: 'D', anode: 'A', cathode: 'K', vf: spec.vf, ohms: spec.ohms, id: 'd' };
+    const d: AnalogElement = { kind: 'D', anode: 'A', cathode: 'K', vf: spec.vf, ohms: spec.ohms, id: 'd', maxAmps: spec.maxAmps * SURGE };
     if (breakdown) d.zener = breakdown;
     const els = [d];
     const check = overcurrent(ctx, `Diode ${ctx.id} (${spec.name})`, spec.maxAmps);
@@ -79,8 +85,8 @@ export function fetModel(spec: FetSpec | ((ctx: PartContext) => FetSpec)): Model
     const s = typeof spec === 'function' ? spec(ctx) : spec;
     const n = s.type === 'n';
     const els: AnalogElement[] = [
-      { kind: 'FET', type: s.type, g: 'G', d: 'D', s: 'S', vth: s.vth, rdsOn: s.rdsOn, id: 'q' },
-      { kind: 'D', anode: n ? 'S' : 'D', cathode: n ? 'D' : 'S', vf: 0.8, ohms: 0.5, zener: s.vdss, id: 'body' },
+      { kind: 'FET', type: s.type, g: 'G', d: 'D', s: 'S', vth: s.vth, rdsOn: s.rdsOn, id: 'q', maxAmps: s.maxAmps * SURGE },
+      { kind: 'D', anode: n ? 'S' : 'D', cathode: n ? 'D' : 'S', vf: 0.8, ohms: 0.5, zener: s.vdss, id: 'body', maxAmps: s.maxAmps * SURGE },
     ];
     const check = overcurrent(ctx, `MOSFET ${ctx.id} (${s.name})`, s.maxAmps);
     let avalanche = false;
@@ -121,12 +127,12 @@ export function fetModel(spec: FetSpec | ((ctx: PartContext) => FetSpec)): Model
 export function darlingtonModel(beta1: number, beta2: number, maxAmps: number, name: string): ModelFactory {
   return (ctx) => {
     const els: AnalogElement[] = [
-      { kind: 'BJT', type: 'npn', b: 'B', c: 'C', e: 'M', beta: beta1, id: 'q1' },
-      { kind: 'BJT', type: 'npn', b: 'M', c: 'C', e: 'E', beta: beta2, id: 'q2' },
+      { kind: 'BJT', type: 'npn', b: 'B', c: 'C', e: 'M', beta: beta1, id: 'q1', maxAmps: maxAmps * SURGE },
+      { kind: 'BJT', type: 'npn', b: 'M', c: 'C', e: 'E', beta: beta2, id: 'q2', maxAmps: maxAmps * SURGE },
       { kind: 'R', a: 'B', b: 'M', ohms: 8000, id: 'r1' },
       { kind: 'R', a: 'M', b: 'E', ohms: 120, id: 'r2' },
       // The C–E diode; its breakdown stands for the 60 V VCEO rating.
-      { kind: 'D', anode: 'E', cathode: 'C', vf: 0.7, ohms: 0.3, zener: 60, id: 'd' },
+      { kind: 'D', anode: 'E', cathode: 'C', vf: 0.7, ohms: 0.3, zener: 60, id: 'd', maxAmps: maxAmps * SURGE },
     ];
     const check = overcurrent(ctx, `Transistor ${ctx.id} (${name})`, maxAmps);
     return {

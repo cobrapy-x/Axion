@@ -10,10 +10,14 @@
 │  paced to real time, event-driven; MCU workers on other cores      │
 └────────────────────────────────────────────────────────────────────┘
            ▲ firmware (.hex)
-┌──────────┴──────── Local compile service (Node) ───────────────────┐
-│  /api/compile → arduino-cli (separate process) → cache ~/.axion    │
+┌──────────┴─── Compile service: Node (browser) / Rust (desktop) ────┐
+│  compile → arduino-cli (separate process) → cache ~/.axion         │
 └────────────────────────────────────────────────────────────────────┘
 ```
+
+In the desktop app (Tauri 2, `src-tauri/`) the same page runs in the system webview, served from
+`http://127.0.0.1:47819` with the cross-origin isolation headers; the compile service, the
+one-time core setup and the native Save dialog are Rust commands called over Tauri's IPC.
 
 ## Folders
 
@@ -23,15 +27,17 @@
 | `src/core/engine.ts` | Netlist + time stepping. No DOM, runs in Node for tests |
 | `src/core/analog/` | The MNA circuit solver and unit parsing ([SOLVER.md](SOLVER.md)) |
 | `src/core/diagram.ts` | `diagram.json` (Wokwi-compatible) + project format, wire routes |
-| `src/mcu/` | Chip-independent MCU runtime (`runtime.ts`, `board.ts`, `families.ts`), the AVR family on avr8js (ATmega328P, ATmega2560) and the I²C / SPI bus models |
-| `src/physics/` | Shared physics and drawing helpers (DC motor dynamics) |
+| `src/mcu/` | Chip-independent MCU runtime (`runtime.ts`, `board.ts`, `families.ts`), the AVR family on avr8js (ATmega328P, ATmega2560), the RP2040 family on rp2040js, the I²C / SPI bus models, firmware formats and the MicroPython runner |
+| `src/physics/` | Shared physics and drawing helpers (electrical DC motor, PWM duty, lamps, semiconductors) |
 | `src/parts/<name>/` | One folder per part: `part.json`, `model.ts`, `view.ts` |
 | `src/sim/` | Simulation worker, message protocol, main-thread client, multi-core coordinator and MCU workers ([MULTICORE.md](MULTICORE.md)) |
 | `src/editor/workspace.ts` | The canvas editor: parts, wires, snapping, undo/redo, clipboard |
 | `src/editor/breadboard.ts` | DOM-free geometry: which part pins sit in which breadboard holes |
 | `src/ui/` | Toolbar, components panel (live thumbnails), menus, icons |
 | `server/compile.ts` | Local compile service used by `npm run dev` / `npm start` |
-| `examples/` | Example circuits with prebuilt `.hex` so they run without a compiler |
+| `src-tauri/` | The desktop app: Rust compile / setup / save commands, localhost server, installers config |
+| `public/firmware/` | MicroPython for the Pico (built from v1.29.0), fetched only when a Pico runs MicroPython |
+| `examples/` | Example circuits with prebuilt `.hex` so they run without a compiler (loaded on demand) |
 
 ## The electrical model
 
@@ -47,7 +53,7 @@ Axion keeps a fast digital path and adds a small **analog solver** only where an
 
 `analogRead()` samples the pin's latest solved voltage at the moment of the conversion, so a potentiometer loaded by a resistor, a voltage divider or a charging capacitor read realistically.
 
-**Motors** use a first-order model: speed approaches `rpm × V / Vrated` with a time constant (0.12 s while driven, 0.4 s while coasting). Between pin changes the voltage is constant, so the motor is advanced with the exact solution of that equation. PWM averages out naturally, and an idle motor costs nothing.
+**Motors** are electrical loads (`src/physics/motor.ts`): the armature is a resistance and an inductance in series with a back-EMF source k·ω, so the solver works out the real current. A motor draws its stall current when it starts, loads whatever drives it (a bare MCU pin barely turns it), and its inductance needs a flyback diode when the current is switched off. The shaft follows J·dω/dt = k·i − b·ω, integrated exactly between updates. Updates happen after every solve that touches the motor and every 1 ms while it turns, so PWM averages out and an idle motor costs nothing. R, k, b and J come from the props (rated voltage, no-load speed, stall and no-load current) with a 0.12 s mechanical time constant.
 
 ## Breadboards
 
@@ -61,7 +67,8 @@ When a part is dropped so one of its legs is within a few pixels of a hole, the 
 - The engine advances all MCUs in **quanta of 50 µs**, so several boards stay in lock-step. MCUs run first in each quantum, then parts with their own physics (e.g. encoders), so those see MCU pin changes with exact timestamps. A part's `schedule()` ends a quantum early, so that event happens at exactly the right time for every MCU.
 - Encoders check their position once per quantum, so edges are accurate to 50 µs. That is plenty for typical gear motors (a few thousand edges per second).
 - MCU↔MCU and MCU↔peripheral links use **transaction-level** messages: UART delivers whole bytes (`sendData` / `onData`), and I²C / SPI deliver whole transfers to `I2CDevice` / `SPIDevice` parts (LCD backpack, 74HC595), instead of simulating every bit edge. This is much faster and is what lets many boards run together.
-- **MCU runtimes** are chip-independent (`src/mcu/runtime.ts`): a board model (`src/mcu/board.ts`) drives an `McuRuntime` (`AvrRuntime` on avr8js today) through a narrow interface: GPIO events, input levels, `analogRead`, UART bytes, I²C / SPI calls. New families (rp2040js, an out-of-process QEMU bridge for the ESP32) plug in there.
+- **MCU runtimes** are chip-independent (`src/mcu/runtime.ts`): a board model (`src/mcu/board.ts`) drives an `McuRuntime` (`AvrRuntime` on avr8js, `Rp2040Runtime` on rp2040js) through a narrow interface: GPIO events, input levels, `analogRead`, UART bytes (with a port number: the Pico's USB serial is port 2), I²C / SPI calls. A board's `vcc` sets its output levels, input thresholds and ADC reference. An out-of-process QEMU bridge for the ESP32 will plug in the same way.
+- **MicroPython** (`src/mcu/micropython.ts`): the Pico runs the MicroPython firmware, and the board model types the user's `main.py` into the raw REPL over the USB serial (like `mpremote run`), hiding the protocol, so the serial monitor shows the program's output and then the interactive REPL.
 - **Multi-core**: with 2+ MCUs and cross-origin isolation, the MCUs run on several cores. The simulation worker keeps the circuit and every other part and becomes the coordinator. It runs one lane of MCUs itself, and MCU workers run the others, in lock-step over SharedArrayBuffer ring buffers with `Atomics`. Outputs come back as timestamped events applied in time order. Requests that need an answer (I²C, SPI, `analogRead`, read-after-write) block the MCU until the coordinator serves them. Results match the single-threaded engine, and the status line shows the number of cores. Details, measurements and fallbacks: [MULTICORE.md](MULTICORE.md).
 - The worker paces simulated time to real time. If the circuit is too heavy it runs slower than real time and the toolbar shows the real speed percentage.
 
@@ -69,11 +76,11 @@ When a part is dropped so one of its legs is within a few pixels of a hole, the 
 
 | Goal | Choice |
 |---|---|
-| Lightweight | Plain TypeScript + Vite, no UI framework. The production build is under 1 MB (~260 KB gzipped). Tauri (planned) wraps it in a ~10 MB desktop app |
+| Lightweight | Plain TypeScript + Vite, no UI framework. About 1 MB of JavaScript (~300 KB gzipped); firmware loads on demand. Tauri wraps it in a ~3 MB desktop installer using the system webview |
 | Offline | Everything runs locally. arduino-cli downloads a board's toolchain once, then compiles offline. Builds are cached by content hash |
 | No fragmentation | Wokwi-compatible `diagram.json`, a stable part contract, parts as self-contained folders |
-| Don't reinvent | avr8js (CPU), wokwi-elements (visuals), arduino-cli (compiler) |
-| Apache-2.0 | Every dependency is MIT/BSD. GPL tools (arduino-cli, later QEMU for ESP32) run as separate processes, never linked in |
+| Don't reinvent | avr8js and rp2040js (CPUs), wokwi-elements (visuals), arduino-cli (compiler), MicroPython, Tauri (desktop) |
+| Apache-2.0 | Every bundled dependency is MIT, BSD or Apache-2.0. GPL tools (arduino-cli, later QEMU for ESP32) run as separate processes, never linked in |
 
 ## Roadmap
 
@@ -84,8 +91,10 @@ When a part is dropped so one of its legs is within a few pixels of a hole, the 
 5. ~~I²C / SPI transaction links between MCUs and peripherals~~ ✅ (v0.4)
 6. ~~Multi-core: MCUs on their own cores, chip-independent MCU runtime~~ ✅ (v0.4, [MULTICORE.md](MULTICORE.md))
 7. ~~Accuracy pass, part 1: per-board logic thresholds (3.3 V ready), real-compiler check script, `pulseIn` timing confirmed~~ ✅ (v0.4.1)
-8. Raspberry Pi Pico (rp2040js, MIT): a new `McuRuntime` family, 3.3 V I/O (v0.5)
-9. DC motor as an electrical load (current, back-EMF, flyback)
-10. Tauri desktop app (Windows/macOS/Linux installers built by CI); split the bundle so parts load on demand
-11. ESP32 via Espressif's QEMU (GPL-2.0, run as a separate process behind an `McuRuntime` bridge)
-12. A part registry: install community parts from a Git URL
+8. ~~Raspberry Pi Pico (rp2040js) in Arduino C++ and MicroPython~~ ✅ (v0.5)
+9. ~~DC motor as an electrical load (stall current, back-EMF, inductance, flyback)~~ ✅ (v0.5)
+10. ~~Tauri desktop app, installers for Windows/macOS/Linux built by CI; firmware loaded on demand~~ ✅ (v0.5)
+11. Desktop polish: code signing, auto-update, multi-core on Linux (WebKitGTK `SharedArrayBuffer`), Pico core 1 and RP2350 (Pico 2) when rp2040js supports them
+12. ESP32 via Espressif's QEMU (GPL-2.0, run as a separate process behind an `McuRuntime` bridge; the desktop app can start it)
+13. Raspberry Pi (the Linux computer) via QEMU, as an optional download: same bridge as the ESP32
+14. A part registry: install community parts from a Git URL

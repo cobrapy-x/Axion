@@ -7,8 +7,30 @@
   "license": "Apache-2.0",
   "idPrefix": "emotor",
   "props": {
-    "rpm": { "type": "number", "label": "No-load speed at rated voltage (RPM)", "default": 200 },
-    "ratedVoltage": { "type": "number", "label": "Rated voltage (V)", "default": 12 },
-    "ppr": { "type": "number", "label": "Encoder pulses per output revolution (per channel)", "default": 330 }
+    "rpm": {
+      "type": "number",
+      "label": "No-load speed at rated voltage (RPM)",
+      "default": 200
+    },
+    "ratedVoltage": {
+      "type": "number",
+      "label": "Rated voltage (V)",
+      "default": 12
+    },
+    "stallCurrent": {
+      "type": "number",
+      "label": "Stall current at rated voltage (A)",
+      "default": 2.0
+    },
+    "noLoadCurrent": {
+      "type": "number",
+      "label": "No-load current (A)",
+      "default": 0.1
+    },
+    "ppr": {
+      "type": "number",
+      "label": "Encoder pulses per output revolution (per channel)",
+      "default": 330
+    }
   }
 }

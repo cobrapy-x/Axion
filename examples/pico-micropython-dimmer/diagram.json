@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "author": "Axion",
+  "editor": "axion",
+  "parts": [
+    { "type": "wokwi-pi-pico", "id": "pico", "top": 0, "left": 0, "attrs": { "language": "micropython" } },
+    { "type": "wokwi-potentiometer", "id": "pot1", "top": -130, "left": 40, "attrs": { "value": "512" } },
+    { "type": "wokwi-led", "id": "led1", "top": 150, "left": 230, "attrs": { "color": "yellow" } },
+    { "type": "wokwi-resistor", "id": "r1", "top": 120, "left": 168, "rotate": 90, "attrs": { "value": "220" } }
+  ],
+  "connections": [
+    ["pot1:VCC", "pico:3V3", "red", []],
+    ["pot1:GND", "pico:GND.7", "black", []],
+    ["pot1:SIG", "pico:GP26", "green", []],
+    ["pico:GP15", "r1:1", "orange", []],
+    ["r1:2", "led1:A", "orange", []],
+    ["led1:C", "pico:GND.4", "black", []]
+  ]
+}

@@ -2,12 +2,30 @@
   "type": "axion-dc-motor",
   "name": "DC motor",
   "category": "Actuators",
-  "description": "Brushed DC gear motor. Speed follows the voltage across + and − (PWM averages out); reversing the voltage reverses it. Drive it through a motor driver such as the L298N.",
+  "description": "Brushed DC gear motor, modelled electrically: armature resistance and inductance plus a back-EMF, so it draws real current (its stall current when starting), loads whatever drives it and needs a flyback diode when switched off. Speed follows the voltage across + and −; PWM averages out; reversing the voltage reverses it.",
   "version": "1.0.0",
   "license": "Apache-2.0",
   "idPrefix": "motor",
   "props": {
-    "rpm": { "type": "number", "label": "No-load speed at rated voltage (RPM)", "default": 200 },
-    "ratedVoltage": { "type": "number", "label": "Rated voltage (V)", "default": 6 }
+    "rpm": {
+      "type": "number",
+      "label": "No-load speed at rated voltage (RPM)",
+      "default": 200
+    },
+    "ratedVoltage": {
+      "type": "number",
+      "label": "Rated voltage (V)",
+      "default": 6
+    },
+    "stallCurrent": {
+      "type": "number",
+      "label": "Stall current at rated voltage (A)",
+      "default": 1.5
+    },
+    "noLoadCurrent": {
+      "type": "number",
+      "label": "No-load current (A)",
+      "default": 0.15
+    }
   }
 }

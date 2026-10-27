@@ -1,0 +1,5 @@
+{
+  "name": "Pico: MicroPython LED dimmer",
+  "description": "Raspberry Pi Pico in MicroPython: a potentiometer on GP26 (ADC) sets the PWM brightness of an LED on GP15. No compiler needed.",
+  "sketches": { "pico": "main.py" }
+}

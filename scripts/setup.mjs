@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: Apache-2.0
-// One-time setup: checks for arduino-cli, installs the Arduino AVR core (Uno/Nano/Mega)
+// One-time setup: checks for arduino-cli, installs the Arduino AVR core (Uno/Nano/Mega), the
+// arduino-pico core (Raspberry Pi Pico)
 // and the libraries most sketches need (Servo, LiquidCrystal I2C / LiquidCrystal for the 16×2 LCD).
 // After this, compiling works fully offline.
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -28,9 +29,16 @@ if (!v) {
 }
 
 console.log(`Found ${v}`);
+// Raspberry Pi Pico: Earle Philhower's arduino-pico core (LGPL-2.1), ~300 MB with its toolchain.
+// Skip it with `npm run setup -- --no-pico`.
+const PICO_INDEX = 'https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json';
+const pico = !process.argv.includes('--no-pico');
+const urls = pico ? ['--additional-urls', PICO_INDEX] : [];
+
 for (const args of [
-  ['core', 'update-index'],
+  ['core', 'update-index', ...urls],
   ['core', 'install', 'arduino:avr'],
+  ...(pico ? [['core', 'install', 'rp2040:rp2040', ...urls]] : []),
   ['lib', 'install', 'Servo'],
   ['lib', 'install', 'LiquidCrystal I2C'],
   ['lib', 'install', 'LiquidCrystal'],

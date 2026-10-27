@@ -29,7 +29,8 @@ export default defineConfig({
   server: { host: '127.0.0.1', port: 5173, headers: isolation },
   preview: { host: '127.0.0.1', port: 5173, headers: isolation },
   worker: { format: 'es' },
-  build: { target: 'es2022', sourcemap: true },
+  // Source maps for the web build; the desktop app (built by the Tauri CLI) ships without them.
+  build: { target: 'es2022', sourcemap: !process.env.TAURI_ENV_PLATFORM },
   test: {
     environment: 'node',
     testTimeout: 30_000,

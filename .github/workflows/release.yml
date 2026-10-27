@@ -1,0 +1,69 @@
+name: Release
+
+# Push a version tag (e.g. `git tag v0.5.0 && git push origin v0.5.0`) to build the desktop
+# installers for Windows, macOS and Linux and attach them to a draft GitHub release.
+# Review the draft on GitHub, then publish it.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest # Apple Silicon and Intel in one universal .dmg
+            args: --target universal-apple-darwin
+          - platform: ubuntu-22.04 # .deb, .rpm and .AppImage
+            args: ''
+          - platform: windows-latest # .msi and .exe (NSIS)
+            args: ''
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Linux libraries for Tauri
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: npm ci
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: Axion ${{ github.ref_name }}
+          releaseBody: |
+            Desktop installers for Axion ${{ github.ref_name }}. See CHANGELOG.md for what's new.
+
+            To compile Arduino code, install arduino-cli once (macOS: `brew install arduino-cli`,
+            Windows: `winget install ArduinoSA.CLI`), then click the "Compiler" badge in Axion to
+            download the Arduino cores. Examples and MicroPython run without it.
+
+            The installers are not code-signed yet: macOS asks you to open the app from
+            System Settings › Privacy & Security the first time; Windows SmartScreen shows
+            "More info › Run anyway".
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}

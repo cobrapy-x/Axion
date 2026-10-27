@@ -17,14 +17,14 @@ export class SimClient {
   onError: (message: string) => void = () => {};
   onStopped: () => void = () => {};
   /** Called once the simulation runs, with the number of cores it uses. */
-  onStarted: (cores: number) => void = () => {};
+  onStarted: (cores: number, why?: string) => void = () => {};
 
   constructor() {
     this.worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
     this.worker.onmessage = (e: MessageEvent<FromWorker>) => {
       const m = e.data;
       if (m.type === 'snapshot' && this.running) this.onSnapshot(m.snapshot, m.speed);
-      else if (m.type === 'started' && this.running) this.onStarted(m.cores);
+      else if (m.type === 'started' && this.running) this.onStarted(m.cores, m.why);
       else if (m.type === 'error') {
         this.running = false;
         this.onError(m.message);

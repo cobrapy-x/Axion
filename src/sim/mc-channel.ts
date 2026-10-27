@@ -11,7 +11,7 @@
  *   96   ring times  Float64[RING]
  *   …    ring data   Int32[RING * 2]   (kind, arg) per event
  *   …    levels      Uint8[pins]       input levels the MCU should see (0, 1, 2 = floating)
- *   …    rx          Uint8[RX_CAP]     UART bytes delivered at the start of a quantum
+ *   …    rx          Uint16[RX_CAP]    UART bytes delivered at the start of a quantum: (port << 8) | byte
  *   …    err         Uint8[ERR_CAP]    error text if the MCU failed
  */
 
@@ -92,7 +92,7 @@ function layout(pins: number) {
   const ringD = ringT + RING * 8;
   const levels = ringD + RING * 8;
   const rx = levels + align8(pins);
-  const err = rx + RX_CAP;
+  const err = rx + RX_CAP * 2;
   return { f64, ringT, ringD, levels, rx, err, bytes: align8(err + ERR_CAP) };
 }
 
@@ -119,7 +119,7 @@ export class McuChannel {
   readonly ringT: Float64Array;
   readonly ringD: Int32Array;
   readonly levels: Uint8Array;
-  readonly rx: Uint8Array;
+  readonly rx: Uint16Array;
   private readonly err: Uint8Array;
   /** MCU side: next ring slot to write. */
   private head = 0;
@@ -134,7 +134,7 @@ export class McuChannel {
     this.ringT = new Float64Array(buffer, l.ringT, RING);
     this.ringD = new Int32Array(buffer, l.ringD, RING * 2);
     this.levels = new Uint8Array(buffer, l.levels, pins);
-    this.rx = new Uint8Array(buffer, l.rx, RX_CAP);
+    this.rx = new Uint16Array(buffer, l.rx, RX_CAP);
     this.err = new Uint8Array(buffer, l.err, ERR_CAP);
   }
 

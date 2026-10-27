@@ -532,8 +532,8 @@ describe.runIf(hasExample('mosfet-motor'))('example: mosfet-motor', () => {
       if (t === 100) eng.input('pot1', 'value', 512);
     });
     expect(half.out).toMatch(/Speed: 50 %/);
-    // The DC motor model coasts (τ 0.4 s) while the MOSFET is off and is driven (τ 0.12 s) while on,
-    // so 50 % PWM gives ≈ 75 % of full speed rather than 50 %.
+    // While the MOSFET is off the armature current keeps flowing through the flyback diode,
+    // so 50 % PWM gives more than half of full speed.
     expect(Number(states(half.e).m1.rpm)).toBeLessThan(rpm * 0.9);
     expect(Number(states(half.e).m1.rpm)).toBeGreaterThan(rpm * 0.25);
     expect(warnings(e)).toEqual([]);
@@ -581,3 +581,66 @@ describe.runIf(hasExample('trimpot-led-dimmer'))('example: trimpot-led-dimmer', 
 });
 
 void S;
+
+describe('DC motor as an electrical load', () => {
+  const motor = (id: string, attrs: Record<string, string> = {}): Part => ({ type: 'axion-dc-motor', id, attrs: { rpm: '200', ratedVoltage: '6', ...attrs } });
+
+  it('draws its stall current at start, then the no-load current at the rated speed', () => {
+    const e = load([battery('b', 6), motor('m')], [
+      ['b:+', 'm:+'],
+      ['b:-', 'm:-'],
+    ]);
+    e.stepTo(2 * MS); // the armature inductance (1.5 mH / 4 Ω) settles in well under a millisecond
+    expect(Number(states(e).m.amps)).toBeGreaterThan(1.3); // stall current 1.5 A
+    e.stepTo(1.5 * S);
+    expect(Number(states(e).m.rpm)).toBeGreaterThan(195);
+    expect(Number(states(e).m.rpm)).toBeLessThanOrEqual(200);
+    expect(Number(states(e).m.amps)).toBeCloseTo(0.15, 2);
+    // A spinning motor is a generator: its back-EMF is ≈ 5.4 V of the 6 V.
+    expect(warnings(e)).toEqual([]);
+  });
+
+  it('speed follows the voltage; a weak source cannot spin it up', () => {
+    const half = load([battery('b', 3), motor('m')], [
+      ['b:+', 'm:+'],
+      ['b:-', 'm:-'],
+    ]);
+    half.stepTo(1.5 * S);
+    expect(Number(states(half).m.rpm)).toBeGreaterThan(90);
+    expect(Number(states(half).m.rpm)).toBeLessThan(105);
+    // 5 V behind 1 kΩ: at most 5 mA, far below the no-load current: the shaft barely moves.
+    const weak = load([battery('b', 5), res('r', '1k'), motor('m')], [
+      ['b:+', 'r:1'],
+      ['r:2', 'm:+'],
+      ['b:-', 'm:-'],
+    ]);
+    weak.stepTo(1.5 * S);
+    expect(Math.abs(Number(states(weak).m.rpm))).toBeLessThan(10);
+  });
+
+  it('coasts slowly with open terminals and brakes fast when shorted', () => {
+    const e = load([battery('b', 6), motor('m'), { type: 'wokwi-slide-switch', id: 'sw' }], [
+      ['b:+', 'sw:1'],
+      ['sw:2', 'm:+'],
+      ['b:-', 'm:-'],
+    ]);
+    e.stepTo(1.5 * S);
+    const full = Number(states(e).m.rpm);
+    e.input('sw', 'value', 1); // open
+    e.stepTo(1.75 * S);
+    const coasting = Number(states(e).m.rpm);
+    expect(coasting).toBeLessThan(full);
+    expect(coasting).toBeGreaterThan(full * 0.6); // J / b ≈ 1.2 s
+  });
+
+  it('mosfet-motor without its flyback diode: the MOSFET warns about the inductive spike', () => {
+    const d = JSON.parse(read('examples/mosfet-motor/diagram.json')) as Diagram;
+    d.parts = d.parts.filter((p) => p.id !== 'd1');
+    d.connections = d.connections.filter((c) => !String(c[0]).startsWith('d1:') && !String(c[1]).startsWith('d1:'));
+    d.connections.push(['q1:D', 'm1:-', 'gray', []], ['m1:+', 'bat1:+', 'red', []]);
+    const e = new Engine(types);
+    e.load(parseDiagram(d), { uno: read('examples/mosfet-motor/sketch.hex') });
+    e.stepTo(800 * MS);
+    expect(warnings(e).join('\n')).toMatch(/flyback diode/);
+  });
+});

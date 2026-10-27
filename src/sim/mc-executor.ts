@@ -115,7 +115,7 @@ export class McuExecutor {
     const n = ch.i32[H_RX];
     if (n) {
       ch.i32[H_RX] = 0;
-      for (let i = 0; i < n; i++) this.runtime.uartReceive(0, ch.rx[i]);
+      for (let i = 0; i < n; i++) this.runtime.uartReceive(ch.rx[i] >> 8, ch.rx[i] & 0xff);
     }
   }
 

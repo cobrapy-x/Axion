@@ -80,14 +80,17 @@ function mcuCount(diagram: Diagram, firmware: Record<string, string>): number {
   return diagram.parts.filter((p) => types.get(p.type)?.manifest.mcu && firmware[p.id]).length;
 }
 
-function multicoreAvailable(): boolean {
-  return (
-    (globalThis as { crossOriginIsolated?: boolean }).crossOriginIsolated === true &&
-    typeof SharedArrayBuffer === 'function' &&
-    typeof Atomics?.wait === 'function' &&
-    typeof Worker === 'function'
-  );
+/** Why the MCUs cannot run on several cores here, or '' if they can. */
+function multicoreBlocker(): string {
+  if ((globalThis as { crossOriginIsolated?: boolean }).crossOriginIsolated !== true) return 'the page is not cross-origin isolated (COOP/COEP headers)';
+  if (typeof SharedArrayBuffer !== 'function') return 'SharedArrayBuffer is not available';
+  if (typeof Atomics?.wait !== 'function') return 'Atomics.wait is not available in workers';
+  if (typeof Worker !== 'function') return 'this browser cannot start workers from a worker';
+  if ((navigator.hardwareConcurrency || 1) < 2) return 'this computer reports a single CPU core';
+  return '';
 }
+
+let whySingle = '';
 
 const spawnMcuWorker: SpawnThread = (loaded, failed) => {
   const w = new Worker(new URL('./mcu-worker.ts', import.meta.url), { type: 'module', name: 'axion-mcu' });
@@ -103,12 +106,14 @@ const spawnMcuWorker: SpawnThread = (loaded, failed) => {
 
 /** A coordinator with MCU workers, or null to run single-threaded. Never throws. */
 async function startCoordinator(mcus: number, maxCores = Infinity): Promise<McuCoordinator | null> {
-  if (mcus < 2 || !multicoreAvailable()) return null;
+  whySingle = mcus < 2 ? '' : multicoreBlocker();
+  if (mcus < 2 || whySingle) return null;
   const plan = planLanes(mcus, Math.min(maxCores, navigator.hardwareConcurrency || 1));
   if (!plan) return null;
   try {
     return await McuCoordinator.start({ ...plan, spawn: spawnMcuWorker, timeoutMs: 5000 });
   } catch (err) {
+    whySingle = `the MCU workers did not start (${err instanceof Error ? err.message : String(err)})`;
     console.warn('Axion: multi-core start failed, running on one core.', err);
     return null;
   }
@@ -138,12 +143,13 @@ async function start(gen: number, diagram: Diagram, firmware: Record<string, str
       // A worker could not build its MCU: run everything here instead (a firmware error
       // shows up again, now as a normal simulation error).
       console.warn('Axion: multi-core start failed, running on one core.', err);
+      whySingle = `an MCU worker failed (${err instanceof Error ? err.message : String(err)})`;
       stopCoordinator();
       engine.load(diagram, firmware);
     }
     if (gen !== generation) return;
   }
-  post({ type: 'started', cores: coordinator?.cores ?? 1 });
+  post({ type: 'started', cores: coordinator?.cores ?? 1, why: coordinator ? undefined : whySingle || undefined });
   running = true;
   await run(gen);
 }

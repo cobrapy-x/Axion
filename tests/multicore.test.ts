@@ -236,6 +236,29 @@ describe('multi-core: same results as single-threaded', () => {
     }
   }, 60_000);
 
+  it('Pico + Uno: USB serial, button, I²C LCD on the RP2040 next to an AVR', async () => {
+    const c = merge([
+      ['p_', 'pico-button-led', { pico: 'sketch.hex' }],
+      ['l_', 'pico-lcd', { pico: 'sketch.hex' }],
+      ['u_', 'blink-button', { uno: 'sketch.hex' }],
+    ]);
+    const script = (step: (ms: number) => void, e: Engine) => {
+      step(300);
+      e.input('p_btn1', 'press');
+      step(100);
+      e.input('p_btn1', 'release');
+      step(300);
+    };
+    const a = await run('single', c, script);
+    expect(a.serial.p_pico).toContain('Presses: 1');
+    expect(String.fromCharCode(...(a.states.l_lcd1.chars as number[]))).toContain('Hello, Pico!');
+    for (const mode of ['inproc', 'threads'] as const) {
+      const b = await run(mode, c, script);
+      expect(b.serial, mode).toEqual(a.serial);
+      expectSameStates(a.states, b.states);
+    }
+  }, 60_000);
+
   it('is deterministic across threaded runs', async () => {
     const a = await run('threads', fourBoards(), fourScript);
     const b = await run('threads', fourBoards(), fourScript);
